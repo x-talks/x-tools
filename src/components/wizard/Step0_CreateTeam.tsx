@@ -1,0 +1,104 @@
+import { useState } from 'react';
+import { useWizard } from '../../core/store';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/Card';
+import { Input } from '../ui/Input';
+import { Button } from '../ui/Button';
+import { Wand2 } from 'lucide-react';
+
+export function Step0_CreateTeam() {
+    const { state, dispatch } = useWizard();
+    const [teamName, setTeamName] = useState(state.team?.teamName || '');
+    const [teamLogo, setTeamLogo] = useState(state.team?.logo || '');
+    const [error, setError] = useState('');
+
+    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setTeamLogo(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleAutoFill = () => {
+        setTeamName("The " + ["Avengers", "Innovators", "Builders", "Titans"][Math.floor(Math.random() * 4)]);
+    };
+
+    const handleNext = () => {
+        if (!teamName.trim()) {
+            setError('Team name is required');
+            return;
+        }
+        if (teamName.length < 3) {
+            setError('Team name must be at least 3 characters');
+            return;
+        }
+
+        dispatch({
+            type: 'SET_TEAM',
+            payload: {
+                teamId: state.team?.teamId || crypto.randomUUID(),
+                teamName,
+                teamPurpose: '', // Initial empty purpose
+                goals: [], // Initial empty goals
+                logo: teamLogo || undefined,
+                createdAt: state.team?.createdAt || new Date().toISOString(),
+                createdBy: 'current-user', // Mock user
+            },
+        });
+        dispatch({ type: 'NEXT_STEP' });
+    };
+
+    return (
+        <Card className="w-full max-w-2xl mx-auto">
+            <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Create New Circle</CardTitle>
+                <Button variant="ghost" size="sm" onClick={handleAutoFill} title="Magic Fill">
+                    <Wand2 className="h-4 w-4 text-purple-500" />
+                </Button>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <p className="text-sm text-blue-800">
+                        Start by giving your circle a name. This will be the identity we build upon.
+                    </p>
+                </div>
+                <div className="space-y-2">
+                    <label htmlFor="teamName" className="text-sm font-medium text-slate-700">Circle Name</label>
+                    <Input
+                        id="teamName"
+                        placeholder="e.g. Product Innovation Squad"
+                        value={teamName}
+                        onChange={(e) => {
+                            setTeamName(e.target.value);
+                            setError('');
+                        }}
+                        autoFocus
+                        error={error && !teamName ? error : undefined}
+                    />
+                    {error && !teamName.trim() && <p className="text-sm text-red-500">{error}</p>}
+                    {error && teamName.trim() && teamName.length < 3 && <p className="text-sm text-red-500">{error}</p>}
+                </div>
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Team Logo (Optional)</label>
+                    <div className="flex items-center gap-4">
+                        {teamLogo && (
+                            <img src={teamLogo} alt="Team Logo" className="h-12 w-12 rounded-full object-cover border border-slate-200" />
+                        )}
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleLogoUpload}
+                            className="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                    </div>
+                </div>
+            </CardContent>
+            <CardFooter className="justify-end">
+                <Button onClick={handleNext}>Next: Mission Statement</Button>
+            </CardFooter>
+        </Card>
+    );
+}
