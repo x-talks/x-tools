@@ -21,9 +21,11 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
+        working-directory: ./x-tools
         run: npm ci
 
       - name: Build
+        working-directory: ./x-tools
         run: npm run build
         env:
           # Make sure to set these secrets in your repository settings!
@@ -33,4 +35,4 @@ jobs:
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: dist
+          folder: x-tools/dist
