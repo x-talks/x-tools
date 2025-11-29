@@ -24,6 +24,9 @@ export const EXAMPLE_TEAM: WizardState = {
         text: 'We rapidly prototype and validate innovative product ideas through continuous user feedback, data-driven decisions, and cross-functional collaboration.',
         keywords: ['prototype', 'validate', 'user feedback', 'data-driven', 'collaboration']
     },
+    strategy: {
+        text: 'Compete through AI-powered automation and modular architecture, serving mid-market enterprises'
+    },
     values: [
         {
             id: 'v1',
@@ -129,6 +132,117 @@ export const EXAMPLE_TEAM: WizardState = {
             user: 'System',
             action: 'created',
             details: 'Example team created'
+        }
+    ],
+    currentStep: 0
+};
+
+export const EXAMPLE_TEAM_2: WizardState = {
+    team: {
+        teamId: 'example-team-002',
+        teamName: 'Platform Engineering Crew',
+        teamPurpose: 'To enable product teams to ship software faster and more safely by providing a robust, self-service internal developer platform.',
+        goals: [
+            'Reduce deployment lead time to < 15 minutes',
+            'Achieve 99.99% platform uptime',
+            'Migrate 100% of services to Kubernetes',
+            'Automate security scanning in CI/CD',
+            'Reduce cloud costs by 20%'
+        ],
+        createdAt: new Date().toISOString(),
+        createdBy: 'System',
+        logo: undefined
+    },
+    vision: {
+        text: 'A frictionless development experience where engineers can focus entirely on business logic without worrying about infrastructure.',
+        archetype: 'The Enabler'
+    },
+    mission: {
+        text: 'We build and maintain the paved road for software delivery, abstracting complexity and enforcing best practices through code.',
+        keywords: ['paved road', 'abstract complexity', 'best practices', 'self-service']
+    },
+    strategy: {
+        text: 'Build Autonomy-Enabling Platform Services – Provide teams with reusable, self-service infrastructure – Reduce dependencies on central operations – Accelerates delivery speed.'
+    },
+    values: [
+        {
+            id: 'v1',
+            label: 'Reliability First',
+            source: 'system',
+            explanation: 'We prioritize stability and uptime above all else'
+        },
+        {
+            id: 'v2',
+            label: 'Automation Over Toil',
+            source: 'system',
+            explanation: 'We automate repetitive tasks to reduce error and save time'
+        },
+        {
+            id: 'v3',
+            label: 'Developer Experience',
+            source: 'system',
+            explanation: 'We treat internal developers as our primary customers'
+        },
+        {
+            id: 'v4',
+            label: 'Security by Design',
+            source: 'system',
+            explanation: 'We embed security into the platform foundation'
+        },
+    ],
+    principles: [
+        {
+            id: 'p1',
+            label: 'Treat the platform as a product',
+            derivedFrom: ['v3']
+        },
+        {
+            id: 'p2',
+            label: 'Automate everything that can be automated',
+            derivedFrom: ['v2']
+        },
+        {
+            id: 'p3',
+            label: 'Secure defaults, not secure hurdles',
+            derivedFrom: ['v4']
+        },
+    ],
+    behaviors: [
+        {
+            id: 'b1',
+            label: 'Write post-mortems for every incident',
+            derivedFromValues: ['v1'],
+            explanation: 'Learning from failure is key to reliability',
+            ruleId: 'system'
+        },
+        {
+            id: 'b2',
+            label: 'Survey developers quarterly on platform satisfaction',
+            derivedFromValues: ['v3'],
+            explanation: 'Feedback loops ensure we build what developers need',
+            ruleId: 'system'
+        },
+    ],
+    goals: [
+        'Reduce deployment lead time to < 15 minutes',
+        'Achieve 99.99% platform uptime',
+        'Migrate 100% of services to Kubernetes',
+        'Automate security scanning in CI/CD',
+        'Reduce cloud costs by 20%'
+    ],
+    roles: [
+        'Platform Engineer',
+        'SRE',
+        'Cloud Architect',
+        'Security Engineer'
+    ],
+    people: [],
+    auditLog: [
+        {
+            ts: new Date().toISOString(),
+            user: 'System',
+            action: 'created',
+            details: 'Example team 2 created'
         }
     ],
     currentStep: 0

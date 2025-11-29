@@ -109,31 +109,40 @@ export class SupabaseAdapter implements StorageAdapter {
     }
 
     async initializeExampleTeam(): Promise<void> {
-        // Check if example team already exists
-        const teams = await this.listTeams();
-        const exampleExists = teams.some(team => team.id === 'example-team-001');
+        try {
+            const teams = await this.listTeams();
+            const { EXAMPLE_TEAM, EXAMPLE_TEAM_2 } = await import('../exampleTeam');
+            const examples = [EXAMPLE_TEAM, EXAMPLE_TEAM_2];
 
-        if (teams.length === 0 && !exampleExists) {
-            try {
-                const { EXAMPLE_TEAM } = await import('../exampleTeam');
-                const exampleSaved: SavedTeam = {
-                    id: EXAMPLE_TEAM.team!.teamId,
-                    name: EXAMPLE_TEAM.team!.teamName,
-                    updatedAt: new Date().toISOString(),
-                    state: EXAMPLE_TEAM
-                };
+            for (const example of examples) {
+                if (!example.team?.teamId) continue;
 
-                await this.supabase
-                    .from('teams')
-                    .insert({
-                        id: exampleSaved.id,
-                        name: exampleSaved.name,
-                        updated_at: exampleSaved.updatedAt,
-                        state: exampleSaved.state
-                    });
-            } catch (e) {
-                console.error('Failed to initialize example team in Supabase', e);
+                const exists = teams.some(team => team.id === example.team!.teamId);
+
+                if (!exists) {
+                    const exampleSaved: SavedTeam = {
+                        id: example.team!.teamId,
+                        name: example.team!.teamName,
+                        updatedAt: new Date().toISOString(),
+                        state: example
+                    };
+
+                    const { error } = await this.supabase
+                        .from('teams')
+                        .insert({
+                            id: exampleSaved.id,
+                            name: exampleSaved.name,
+                            updated_at: exampleSaved.updatedAt,
+                            state: exampleSaved.state
+                        });
+
+                    if (error) {
+                        console.error(`Failed to insert example team ${exampleSaved.name}:`, error);
+                    }
+                }
             }
+        } catch (e) {
+            console.error('Failed to initialize example teams in Supabase', e);
         }
     }
 }

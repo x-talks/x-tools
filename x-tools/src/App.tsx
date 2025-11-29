@@ -15,7 +15,7 @@ import { Step6_Behaviors } from './components/wizard/Step6_Behaviors';
 import { Step7_Goals } from './components/wizard/Step7_Goals';
 import { Step8_Roles } from './components/wizard/Step8_Roles';
 import { Step10_Save as Step9_Save } from './components/wizard/Step10_Save';
-import { Step9_Export as Step10_Export } from './components/wizard/Step9_Export';
+import { TeamCanvas } from './components/TeamCanvas';
 
 const STEPS = [
   { title: 'Create Circle' },
@@ -29,7 +29,7 @@ const STEPS = [
   { title: 'Goals' },
   { title: 'Roles' },
   { title: 'Save' },
-  { title: 'Export' },
+  { title: 'Canvas' },
 ];
 
 function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
@@ -51,8 +51,8 @@ function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
       case 7: return <Step6_Behaviors />;
       case 8: return <Step7_Goals />;
       case 9: return <Step8_Roles />;
-      case 10: return <Step9_Save onViewHome={onViewHome} />;
-      case 11: return <Step10_Export />;
+      case 10: return <Step9_Save />;
+      case 11: return <TeamCanvas />;
       default: return <Step0_CreateTeam />;
     }
   };

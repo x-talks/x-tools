@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/Card
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Wand2 } from 'lucide-react';
+import { WIZARD_CONTENT } from '../../core/rules';
 
 export function Step0_CreateTeam() {
     const { state, dispatch } = useWizard();
@@ -36,18 +37,40 @@ export function Step0_CreateTeam() {
             return;
         }
 
+        // Auto-fill defaults if not already present
+        const defaultPurpose = WIZARD_CONTENT.Purpose.Statements[Math.floor(Math.random() * WIZARD_CONTENT.Purpose.Statements.length)];
+        const defaultVision = WIZARD_CONTENT.Vision.Statements[Math.floor(Math.random() * WIZARD_CONTENT.Vision.Statements.length)];
+        const defaultMission = WIZARD_CONTENT.Mission.Statements[Math.floor(Math.random() * WIZARD_CONTENT.Mission.Statements.length)];
+        const defaultStrategy = WIZARD_CONTENT.Strategy.Items[Math.floor(Math.random() * WIZARD_CONTENT.Strategy.Items.length)];
+
+        // Pick 3 random values
+        const shuffledValues = [...WIZARD_CONTENT.Value.Statements].sort(() => 0.5 - Math.random());
+        const defaultValues = shuffledValues.slice(0, 3).map((v, i) => ({
+            id: `val-${Date.now()}-${i}`,
+            label: v,
+            source: 'system' as const,
+            explanation: 'Core value selected for this team.'
+        }));
+
         dispatch({
             type: 'SET_TEAM',
             payload: {
                 teamId: state.team?.teamId || crypto.randomUUID(),
                 teamName,
-                teamPurpose: '', // Initial empty purpose
-                goals: [], // Initial empty goals
+                teamPurpose: state.team?.teamPurpose || defaultPurpose,
+                goals: state.team?.goals || [],
                 logo: teamLogo || undefined,
                 createdAt: state.team?.createdAt || new Date().toISOString(),
-                createdBy: 'current-user', // Mock user
+                createdBy: 'current-user',
             },
         });
+
+        // Pre-populate other steps if empty
+        if (!state.vision?.text) dispatch({ type: 'SET_VISION', payload: { text: defaultVision, archetype: 'The Pioneer' } });
+        if (!state.mission?.text) dispatch({ type: 'SET_MISSION', payload: { text: defaultMission, keywords: [] } });
+        if (!state.strategy?.text) dispatch({ type: 'SET_STRATEGY', payload: { text: defaultStrategy.Strategy } });
+        if (state.values.length === 0) dispatch({ type: 'SET_VALUES', payload: defaultValues });
+
         dispatch({ type: 'NEXT_STEP' });
     };
 
@@ -78,8 +101,7 @@ export function Step0_CreateTeam() {
                         autoFocus
                         error={error && !teamName ? error : undefined}
                     />
-                    {error && !teamName.trim() && <p className="text-sm text-red-500">{error}</p>}
-                    {error && teamName.trim() && teamName.length < 3 && <p className="text-sm text-red-500">{error}</p>}
+                    {/* Error message handled by Input component */}
                 </div>
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700">Team Logo (Optional)</label>
