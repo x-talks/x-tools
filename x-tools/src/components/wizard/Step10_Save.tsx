@@ -1,11 +1,13 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useWizard } from '../../core/store';
 import { getSavedTeams, saveTeam, loadTeam, deleteTeam } from '../../core/storage';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { Download, Save, Upload, Trash2 } from 'lucide-react';
+import { Download, Save, Upload, Trash2, Search as SearchIcon } from 'lucide-react';
 import { SavedTeam } from '../../core/types';
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { useAutoSave } from '../../hooks/useAutoSave';
 
 interface Step8Props {
     // onViewHome?: () => void; // Removed as per instruction
@@ -14,16 +16,37 @@ interface Step8Props {
 export function Step10_Save({ }: Step8Props) {
     const { state, dispatch } = useWizard();
     const [savedTeams, setSavedTeams] = useState<SavedTeam[]>([]);
+    const [filteredTeams, setFilteredTeams] = useState<SavedTeam[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const [lastSaved, setLastSaved] = useState<string | null>(null);
     const [saveError, setSaveError] = useState<string | null>(null);
+    const searchInputRef = useRef<HTMLInputElement>(null);
+
+    const { isSaving, lastSaved: autoSaveTime } = useAutoSave(state, true);
 
     // Validate completeness (validation and its destructuring removed as per instruction)
     // const validation = validateTeamCompleteness(state);
     // const { isComplete, missing } = validation;
 
     useEffect(() => {
-        getSavedTeams().then(setSavedTeams);
+        getSavedTeams().then(teams => {
+            setSavedTeams(teams);
+            setFilteredTeams(teams);
+        });
     }, []);
+
+    useEffect(() => {
+        if (!searchQuery.trim()) {
+            setFilteredTeams(savedTeams);
+            return;
+        }
+        const query = searchQuery.toLowerCase();
+        const filtered = savedTeams.filter(team =>
+            team.name.toLowerCase().includes(query) ||
+            team.state.team?.teamPurpose?.toLowerCase().includes(query)
+        );
+        setFilteredTeams(filtered);
+    }, [searchQuery, savedTeams]);
 
     const handleSave = async () => {
         setSaveError(null);
@@ -107,10 +130,23 @@ export function Step10_Save({ }: Step8Props) {
         dispatch({ type: 'PREV_STEP' });
     };
 
+    useKeyboardShortcuts({
+        save: handleSave,
+        search: () => searchInputRef.current?.focus(),
+        next: () => { },
+        prev: handlePrev
+    });
+
     return (
         <Card className="w-full max-w-4xl mx-auto">
             <CardHeader>
-                <CardTitle>Save & Persistence</CardTitle>
+                <div className="flex justify-between items-center">
+                    <CardTitle>Save & Persistence</CardTitle>
+                    {isSaving && <span className="text-sm text-blue-600 animate-pulse">Saving...</span>}
+                    {!isSaving && autoSaveTime && (
+                        <span className="text-sm text-green-600">Auto-saved at {autoSaveTime.toLocaleTimeString()}</span>
+                    )}
+                </div>
             </CardHeader>
             <CardContent className="space-y-8">
 
@@ -154,12 +190,28 @@ export function Step10_Save({ }: Step8Props) {
 
                     {/* Saved Teams List */}
                     <div className="space-y-4">
-                        <h3 className="text-lg font-medium text-slate-900">Saved Teams</h3>
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">Saved Teams</h3>
+                            <span className="text-sm text-slate-500">{filteredTeams.length} team(s)</span>
+                        </div>
+                        <div className="relative">
+                            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <input
+                                ref={searchInputRef}
+                                type="text"
+                                placeholder="Search teams... (press '/' to focus)"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white"
+                            />
+                        </div>
                         <div className="space-y-2 max-h-80 overflow-y-auto">
-                            {savedTeams.length === 0 && (
-                                <p className="text-sm text-slate-500 italic">No saved teams found.</p>
+                            {filteredTeams.length === 0 && (
+                                <p className="text-sm text-slate-500 italic">
+                                    {searchQuery ? 'No teams match your search.' : 'No saved teams found.'}
+                                </p>
                             )}
-                            {savedTeams.map(team => (
+                            {filteredTeams.map(team => (
                                 <div key={team.id} className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-md shadow-sm">
                                     <div>
                                         <p className="font-medium text-sm">{team.name}</p>

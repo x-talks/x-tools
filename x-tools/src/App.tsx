@@ -15,7 +15,10 @@ import { Step6_Behaviors } from './components/wizard/Step6_Behaviors';
 import { Step7_Goals } from './components/wizard/Step7_Goals';
 import { Step8_Roles } from './components/wizard/Step8_Roles';
 import { Step10_Save as Step9_Save } from './components/wizard/Step10_Save';
-import { TeamCanvas } from './components/TeamCanvas';
+import { TeamVisualization } from './components/TeamVisualization';
+import { ThemeProvider } from './components/ThemeProvider';
+import { ThemeToggle } from './components/ThemeToggle';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 const STEPS = [
   { title: 'Create Circle' },
@@ -39,6 +42,21 @@ function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
     dispatch({ type: 'GO_TO_STEP', payload: index });
   };
 
+  useKeyboardShortcuts({
+    save: () => { },
+    search: () => { },
+    next: () => {
+      if (state.currentStep < STEPS.length - 1) {
+        dispatch({ type: 'NEXT_STEP' });
+      }
+    },
+    prev: () => {
+      if (state.currentStep > 0) {
+        dispatch({ type: 'PREV_STEP' });
+      }
+    }
+  });
+
   const renderStep = () => {
     switch (state.currentStep) {
       case 0: return <Step0_CreateTeam />;
@@ -52,7 +70,7 @@ function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
       case 8: return <Step7_Goals />;
       case 9: return <Step8_Roles />;
       case 10: return <Step9_Save />;
-      case 11: return <TeamCanvas />;
+      case 11: return <TeamVisualization />;
       default: return <Step0_CreateTeam />;
     }
   };
@@ -70,8 +88,9 @@ function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
             </div>
             <span className="text-sm font-medium text-slate-600 group-hover:text-slate-900">Back to Home</span>
           </button>
-          <div className="text-sm font-medium text-slate-400">
-            Minimal Vibroscope <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full ml-1">v1.1</span>
+          <div className="text-sm font-medium text-slate-400 flex items-center gap-3">
+            Minimal Vibroscope <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full ml-1">v1.2</span>
+            <ThemeToggle />
           </div>
         </div>
         <Stepper steps={STEPS} currentStep={state.currentStep} onStepClick={handleStepClick} />
@@ -125,11 +144,13 @@ function MainContent() {
 // Redefine App to use MainContent
 function AppWrapper() {
   return (
-    <WizardProvider>
-      <Layout>
-        <MainContent />
-      </Layout>
-    </WizardProvider>
+    <ThemeProvider>
+      <WizardProvider>
+        <Layout>
+          <MainContent />
+        </Layout>
+      </WizardProvider>
+    </ThemeProvider>
   );
 }
 
