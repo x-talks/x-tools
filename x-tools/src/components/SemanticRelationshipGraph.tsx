@@ -1,0 +1,201 @@
+import { useCallback, useMemo } from 'react';
+import ReactFlow, {
+    Node,
+    Edge,
+    Background,
+    Controls,
+    MiniMap,
+    useNodesState,
+    useEdgesState,
+    MarkerType,
+} from 'reactflow';
+import 'reactflow/dist/style.css';
+import { useWizard } from '../core/store';
+import { buildOntologyGraph, RelationType } from '../core/ontology';
+import dagre from 'dagre';
+
+const LAYER_COLORS = {
+    identity: { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af' },
+    culture: { bg: '#fce7f3', border: '#ec4899', text: '#9f1239' },
+    behavior: { bg: '#d1fae5', border: '#10b981', text: '#065f46' },
+    execution: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e' },
+};
+
+const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
+    const dagreGraph = new dagre.graphlib.Graph();
+    dagreGraph.setDefaultEdgeLabel(() => ({}));
+    dagreGraph.setGraph({ rankdir: direction, ranksep: 100, nodesep: 80 });
+
+    nodes.forEach((node) => {
+        dagreGraph.setNode(node.id, { width: 200, height: 80 });
+    });
+
+    edges.forEach((edge) => {
+        dagreGraph.setEdge(edge.source, edge.target);
+    });
+
+    dagre.layout(dagreGraph);
+
+    const layoutedNodes = nodes.map((node) => {
+        const nodeWithPosition = dagreGraph.node(node.id);
+        return {
+            ...node,
+            position: {
+                x: nodeWithPosition.x - 100,
+                y: nodeWithPosition.y - 40,
+            },
+        };
+    });
+
+    return { nodes: layoutedNodes, edges };
+};
+
+export function SemanticRelationshipGraph() {
+    const { state } = useWizard();
+    const graph = buildOntologyGraph(state);
+
+    const { initialNodes, initialEdges } = useMemo(() => {
+        const nodes: Node[] = graph.nodes.map((node) => {
+            const layerStyle = LAYER_COLORS[node.layer];
+            return {
+                id: node.id,
+                type: 'default',
+                data: {
+                    label: (
+                        <div className="text-center p-2">
+                            <div className="text-xs font-semibold uppercase text-slate-500 mb-1">
+                                {node.type}
+                            </div>
+                            <div className="font-medium text-sm">
+                                {node.label}
+                            </div>
+                            {node.semanticTags.length > 0 && (
+                                <div className="flex flex-wrap gap-1 justify-center mt-1">
+                                    {node.semanticTags.slice(0, 2).map((tag, i) => (
+                                        <span
+                                            key={i}
+                                            className="text-xs px-1 py-0.5 bg-slate-100 rounded"
+                                        >
+                                            {tag.concept.toLowerCase()}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ),
+                },
+                position: { x: 0, y: 0 },
+                style: {
+                    background: layerStyle.bg,
+                    border: `2px solid ${layerStyle.border}`,
+                    borderRadius: '8px',
+                    padding: '4px',
+                    width: 200,
+                    minHeight: 80,
+                },
+            };
+        });
+
+        const edges: Edge[] = graph.relationships.map((rel) => {
+            const isConflict = rel.relationType === RelationType.CONFLICTS_WITH;
+            return {
+                id: rel.id,
+                source: rel.sourceId,
+                target: rel.targetId,
+                label: rel.relationType.replace('_', ' '),
+                type: 'smoothstep',
+                animated: rel.auto_detected,
+                style: {
+                    stroke: isConflict ? '#ef4444' : '#6b7280',
+                    strokeWidth: 2,
+                },
+                markerEnd: {
+                    type: MarkerType.ArrowClosed,
+                    color: isConflict ? '#ef4444' : '#6b7280',
+                },
+            };
+        });
+
+        // Add conflict edges
+        graph.conflicts.forEach((conflict) => {
+            edges.push({
+                id: `conflict-${conflict.id}`,
+                source: conflict.item1.id,
+                target: conflict.item2.id,
+                label: `⚠️ ${conflict.dimension}`,
+                type: 'straight',
+                animated: true,
+                style: {
+                    stroke: '#f59e0b',
+                    strokeWidth: 3,
+                    strokeDasharray: '5,5',
+                },
+                markerEnd: {
+                    type: MarkerType.Arrow,
+                    color: '#f59e0b',
+                },
+            });
+        });
+
+        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(nodes, edges);
+        return { initialNodes: layoutedNodes, initialEdges: layoutedEdges };
+    }, [graph]);
+
+    const [nodes, , onNodesChange] = useNodesState(initialNodes);
+    const [edges, , onEdgesChange] = useEdgesState(initialEdges);
+
+    const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
+        console.log('Node clicked:', node);
+        // Future: Show node details panel
+    }, []);
+
+    return (
+        <div className="w-full h-[600px] border-2 border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+            <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onNodeClick={onNodeClick}
+                fitView
+                attributionPosition="bottom-left"
+            >
+                <Background />
+                <Controls />
+                <MiniMap
+                    nodeColor={(node) => {
+                        const graphNode = graph.nodes.find(n => n.id === node.id);
+                        return graphNode ? LAYER_COLORS[graphNode.layer].border : '#ccc';
+                    }}
+                    nodeBorderRadius={8}
+                />
+            </ReactFlow>
+
+            {/* Legend */}
+            <div className="absolute top-4 right-4 bg-white dark:bg-slate-800 p-3 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
+                <div className="text-xs font-semibold mb-2 text-slate-700 dark:text-slate-300">Layers</div>
+                <div className="space-y-1">
+                    {Object.entries(LAYER_COLORS).map(([layer, colors]) => (
+                        <div key={layer} className="flex items-center gap-2 text-xs">
+                            <div
+                                className="w-3 h-3 rounded"
+                                style={{ background: colors.bg, border: `2px solid ${colors.border}` }}
+                            />
+                            <span className="capitalize text-slate-600 dark:text-slate-400">{layer}</span>
+                        </div>
+                    ))}
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-200 dark:border-slate-700 space-y-1">
+                    <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                        <div className="w-8 h-0.5 bg-slate-400" />
+                        <span>Relationship</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-yellow-600 dark:text-yellow-400">
+                        <div className="w-8 h-0.5 bg-yellow-500" style={{ borderTop: '2px dashed' }} />
+                        <span>Conflict</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

@@ -6,6 +6,8 @@ import { SideNote } from '../ui/SideNote';
 import { Button } from '../ui/Button';
 import { cn } from '../../utils/cn';
 import { X, Plus } from 'lucide-react';
+import { DraggableList } from '../DraggableList';
+import { SemanticTags } from '../SemanticTags';
 import type { Value } from '../../core/types';
 
 export function Step4_Values() {
@@ -73,26 +75,37 @@ export function Step4_Values() {
                 </div>
 
                 <div className="space-y-4">
-                    <h4 className="text-sm font-medium">Your Selected Values</h4>
-                    <div className="flex flex-wrap gap-2">
-                        {selectedValues.length === 0 && (
-                            <span className="text-sm text-slate-400 italic">No values selected yet.</span>
-                        )}
-                        {selectedValues.map((val) => (
-                            <span
-                                key={val.id}
-                                className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium transition-colors bg-blue-100 text-blue-800"
-                            >
-                                {val.label}
-                                <button
-                                    onClick={() => toggleValue(val)}
-                                    className="ml-1 rounded-full p-0.5 hover:bg-black/10"
-                                >
-                                    <X className="h-3 w-3" />
-                                </button>
-                            </span>
-                        ))}
-                    </div>
+                    <h4 className="text-sm font-medium">Your Selected Values (drag to reorder)</h4>
+                    {selectedValues.length === 0 ? (
+                        <span className="text-sm text-slate-400 italic">No values selected yet.</span>
+                    ) : (
+                        <DraggableList
+                            items={selectedValues.map(val => ({
+                                id: val.id,
+                                content: (
+                                    <div className="flex items-start gap-2 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
+                                        <div className="flex-1">
+                                            <div className="font-medium text-slate-900 dark:text-slate-100">{val.label}</div>
+                                            <SemanticTags text={val.label + ' ' + val.explanation} maxTags={2} />
+                                        </div>
+                                        <button
+                                            onClick={() => toggleValue(val)}
+                                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700"
+                                            title="Remove"
+                                        >
+                                            <X className="h-4 w-4 text-slate-400" />
+                                        </button>
+                                    </div>
+                                )
+                            }))}
+                            onReorder={(items) => {
+                                const reordered = items.map(item =>
+                                    selectedValues.find(v => v.id === item.id)!
+                                ).filter(Boolean);
+                                setSelectedValues(reordered);
+                            }}
+                        />
+                    )}
                 </div>
 
                 <div className="space-y-4">
