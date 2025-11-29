@@ -4,13 +4,15 @@ import { BEHAVIOR_TEMPLATES, WIZARD_CONTENT } from '../../core/rules';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/Card';
 import { SideNote } from '../ui/SideNote';
 import { Button } from '../ui/Button';
-import { Plus, Trash2, Wand2 } from 'lucide-react';
+import { Plus, Trash2, Wand2, Sparkles } from 'lucide-react';
 import type { Behavior } from '../../core/types';
+import AI from '../../core/ai';
 
 export function Step6_Behaviors() {
     const { state, dispatch } = useWizard();
     const [behaviors, setBehaviors] = useState<Behavior[]>(state.behaviors);
     const [newBehaviorText, setNewBehaviorText] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
 
     // Pre-fill with example if empty
     useEffect(() => {
@@ -60,6 +62,32 @@ export function Step6_Behaviors() {
         })));
     };
 
+    const handleAISuggest = async () => {
+        setIsGenerating(true);
+        try {
+            const values = state.values.map(v => v.label);
+            const principles = state.principles.map(p => p.label);
+
+            // Use the first principle + values context
+            const contextPrinciple = principles[0] || 'General Team Culture';
+            const suggestions = await AI.suggestBehaviors(contextPrinciple, values);
+
+            const newBehaviors = suggestions.map((text, i) => ({
+                id: `beh-ai-${Date.now()}-${i}`,
+                label: text,
+                derivedFromValues: [],
+                explanation: 'AI Suggested',
+                ruleId: 'AI'
+            }));
+
+            setBehaviors(prev => [...prev, ...newBehaviors]);
+        } catch (error) {
+            console.error('AI Suggestion failed:', error);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     return (
         <Card className="w-full max-w-4xl mx-auto">
             <CardHeader>
@@ -72,9 +100,21 @@ export function Step6_Behaviors() {
                 <div className="space-y-4">
                     <div className="flex justify-between items-center">
                         <h4 className="text-sm font-medium">Behaviors</h4>
-                        <Button variant="ghost" size="sm" onClick={handleAutoFill} title="Magic Fill">
-                            <Wand2 className="h-4 w-4 text-purple-500" />
-                        </Button>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleAISuggest}
+                                disabled={isGenerating || state.values.length === 0}
+                                className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                            >
+                                <Sparkles className={`h-4 w-4 mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
+                                {isGenerating ? 'Thinking...' : 'AI Suggest'}
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={handleAutoFill} title="Magic Fill">
+                                <Wand2 className="h-4 w-4 text-slate-400" />
+                            </Button>
+                        </div>
                     </div>
 
                     {behaviors.map((behavior) => (

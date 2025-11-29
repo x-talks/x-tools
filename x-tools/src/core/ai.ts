@@ -21,7 +21,11 @@ interface GroqConfig {
     model?: string;
 }
 
-let groqConfig: GroqConfig = {};
+// Default configuration
+let groqConfig: GroqConfig = {
+    apiKey: '', // User must enter key in settings
+    model: GROQ_MODEL
+};
 
 export function configureGroq(apiKey: string, model: string = GROQ_MODEL) {
     groqConfig = { apiKey, model };
@@ -317,6 +321,7 @@ function labelToConcept(label: string): any {
 export const AI = {
     // Configuration
     configure: configureGroq,
+    getGroqApiKey,
     isConfigured: isGroqConfigured,
 
     // Suggestions

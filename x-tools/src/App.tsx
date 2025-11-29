@@ -18,6 +18,7 @@ import { Step10_Save as Step9_Save } from './components/wizard/Step10_Save';
 import { TeamVisualization } from './components/TeamVisualization';
 import { ThemeProvider } from './components/ThemeProvider';
 import { ThemeToggle } from './components/ThemeToggle';
+import { AISettings } from './components/AISettings';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 const STEPS = [
@@ -88,8 +89,10 @@ function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
             </div>
             <span className="text-sm font-medium text-slate-600 group-hover:text-slate-900">Back to Home</span>
           </button>
-          <div className="text-sm font-medium text-slate-400 flex items-center gap-3">
+          <div className="text-sm font-medium text-slate-400 flex items-center gap-2">
             Minimal Vibroscope <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full ml-1">v1.2</span>
+            <div className="w-px h-4 bg-slate-300 dark:bg-slate-700 mx-1" />
+            <AISettings />
             <ThemeToggle />
           </div>
         </div>
