@@ -1,0 +1,25 @@
+# Build- & Dependency-Verzeichnisse
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+
+# Logging und Temporäre Dateien
+*.log
+*.tmp
+logs/
+
+# Lokale und sensible Konfigurationen
+.env
+.env.*
+db_config.*
+local_storage/
+
+# Editor-Konfigurationen
+.vscode/
+.idea/
+
+# Versionskontrolle
+.git/
+.gitignore

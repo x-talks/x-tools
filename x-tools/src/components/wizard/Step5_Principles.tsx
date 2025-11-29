@@ -60,6 +60,8 @@ export function Step5_Principles() {
         setIsGenerating(true);
         try {
             const values = state.values.map(v => v.label);
+            // Pass current principles to avoid duplicates or provide context if possible
+            // For now, we rely on values as the primary driver, but we append results.
             const suggestions = await AI.suggestPrinciples(values);
 
             const newPrinciples = suggestions.map((text, i) => ({

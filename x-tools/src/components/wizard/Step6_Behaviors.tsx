@@ -69,6 +69,7 @@ export function Step6_Behaviors() {
             const principles = state.principles.map(p => p.label);
 
             // Use the first principle + values context
+            // We pass current context to ensure additive suggestions
             const contextPrinciple = principles[0] || 'General Team Culture';
             const suggestions = await AI.suggestBehaviors(contextPrinciple, values);
 

@@ -5,12 +5,29 @@ import { getSavedTeams, saveTeam, loadTeam, deleteTeam } from '../../core/storag
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Download, Save, Upload, Trash2, Search as SearchIcon } from 'lucide-react';
-import { SavedTeam } from '../../core/types';
+import { SavedTeam, WizardState } from '../../core/types';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useAutoSave } from '../../hooks/useAutoSave';
 
 interface Step8Props {
     // onViewHome?: () => void; // Removed as per instruction
+}
+
+function validateTeamCompleteness(state: WizardState) {
+    const missing: string[] = [];
+    if (!state.team?.teamPurpose) missing.push('Purpose');
+    if (!state.vision) missing.push('Vision');
+    if (!state.mission) missing.push('Mission');
+    if (!state.strategy) missing.push('Strategy');
+    if (state.values.length === 0) missing.push('Values');
+    if (state.principles.length === 0) missing.push('Principles');
+    if (state.behaviors.length === 0) missing.push('Behaviors');
+    if (state.goals.length === 0) missing.push('Goals');
+
+    return {
+        isComplete: missing.length === 0,
+        missing
+    };
 }
 
 export function Step10_Save({ }: Step8Props) {
@@ -24,9 +41,8 @@ export function Step10_Save({ }: Step8Props) {
 
     const { isSaving, lastSaved: autoSaveTime } = useAutoSave(state, true);
 
-    // Validate completeness (validation and its destructuring removed as per instruction)
-    // const validation = validateTeamCompleteness(state);
-    // const { isComplete, missing } = validation;
+    const validation = validateTeamCompleteness(state);
+    const { isComplete, missing } = validation;
 
     useEffect(() => {
         getSavedTeams().then(teams => {
@@ -157,6 +173,14 @@ export function Step10_Save({ }: Step8Props) {
                     </div>
                 )}
 
+                {/* Completeness Warning */}
+                {!isComplete && (
+                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-800 flex items-start">
+                        <span className="font-semibold mr-1">Team is incomplete.</span>
+                        <span>Missing: {missing.join(', ')}</span>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Current Team Actions */}
                     <div className="space-y-4">
@@ -214,7 +238,14 @@ export function Step10_Save({ }: Step8Props) {
                             {filteredTeams.map(team => (
                                 <div key={team.id} className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-md shadow-sm">
                                     <div>
-                                        <p className="font-medium text-sm">{team.name}</p>
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-medium text-sm">{team.name}</p>
+                                            {!validateTeamCompleteness(team.state).isComplete && (
+                                                <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 text-[10px] rounded-full font-medium">
+                                                    Incomplete
+                                                </span>
+                                            )}
+                                        </div>
                                         <p className="text-xs text-slate-500">{new Date(team.updatedAt).toLocaleDateString()}</p>
                                     </div>
                                     <div className="flex gap-1">
