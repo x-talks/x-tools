@@ -138,6 +138,154 @@ Return ONLY the improved mission, no explanation.`;
     }
 }
 
+export async function suggestPurpose(teamName?: string, industry?: string): Promise<string> {
+    if (!isGroqConfigured()) {
+        return ruleBased_suggestPurpose();
+    }
+
+    try {
+        const context = teamName ? `Team name: ${teamName}` : '';
+        const industryContext = industry ? `Industry: ${industry}` : '';
+
+        const prompt = `Generate a compelling team purpose statement.
+${context}
+${industryContext}
+
+The purpose should explain why the team exists and its ultimate impact.
+Format: Return ONLY the purpose statement, no explanation.
+Keep it to 1-2 sentences, inspirational but authentic.`;
+
+        return await callGroqAPI(prompt, 'You are a team alignment expert.');
+    } catch (error) {
+        console.error('AI suggestion failed:', error);
+        return ruleBased_suggestPurpose();
+    }
+}
+
+export async function suggestVision(purpose?: string, values?: string[]): Promise<string> {
+    if (!isGroqConfigured()) {
+        return ruleBased_suggestVision();
+    }
+
+    try {
+        const purposeContext = purpose ? `Purpose: ${purpose}` : '';
+        const valuesContext = values?.length ? `Values: ${values.join(', ')}` : '';
+
+        const prompt = `Generate an inspiring vision statement.
+${purposeContext}
+${valuesContext}
+
+The vision should describe the future state the team wants to create.
+Format: Return ONLY the vision statement, no explanation.
+Keep it to 1-2 sentences, aspirational and forward-looking.`;
+
+        return await callGroqAPI(prompt, 'You are a strategic vision expert.');
+    } catch (error) {
+        console.error('AI suggestion failed:', error);
+        return ruleBased_suggestVision();
+    }
+}
+
+export async function suggestMission(purpose?: string, vision?: string): Promise<string> {
+    if (!isGroqConfigured()) {
+        return ruleBased_suggestMission();
+    }
+
+    try {
+        const purposeContext = purpose ? `Purpose: ${purpose}` : '';
+        const visionContext = vision ? `Vision: ${vision}` : '';
+
+        const prompt = `Generate a clear mission statement.
+${purposeContext}
+${visionContext}
+
+The mission should define what the team does every day to achieve its purpose.
+Format: Return ONLY the mission statement, no explanation.
+Keep it to 1-2 sentences, specific and actionable.`;
+
+        return await callGroqAPI(prompt, 'You are a strategic planning expert.');
+    } catch (error) {
+        console.error('AI suggestion failed:', error);
+        return ruleBased_suggestMission();
+    }
+}
+
+export async function suggestStrategy(mission?: string, values?: string[]): Promise<string> {
+    if (!isGroqConfigured()) {
+        return ruleBased_suggestStrategy();
+    }
+
+    try {
+        const missionContext = mission ? `Mission: ${mission}` : '';
+        const valuesContext = values?.length ? `Values: ${values.join(', ')}` : '';
+
+        const prompt = `Generate a strategic approach statement.
+${missionContext}
+${valuesContext}
+
+The strategy should explain HOW the team will win and differentiate.
+Format: Return ONLY the strategy statement, no explanation.
+Keep it to 2-3 sentences, focused on competitive advantage.`;
+
+        return await callGroqAPI(prompt, 'You are a business strategy expert.');
+    } catch (error) {
+        console.error('AI suggestion failed:', error);
+        return ruleBased_suggestStrategy();
+    }
+}
+
+export async function suggestValues(purpose?: string, industry?: string): Promise<string[]> {
+    if (!isGroqConfigured()) {
+        return ruleBased_suggestValues();
+    }
+
+    try {
+        const purposeContext = purpose ? `Purpose: ${purpose}` : '';
+        const industryContext = industry ? `Industry: ${industry}` : '';
+
+        const prompt = `Based on this context:
+${purposeContext}
+${industryContext}
+
+Generate 3-5 core values that should guide the team.
+Format: Return ONLY a JSON array of value names (1-3 words each).
+Example: ["Innovation", "Customer Focus", "Integrity", "Excellence"]`;
+
+        const result = await callGroqAPI(prompt, 'You are a team culture expert.');
+        const values = JSON.parse(result);
+        return Array.isArray(values) ? values : [];
+    } catch (error) {
+        console.error('AI suggestion failed:', error);
+        return ruleBased_suggestValues();
+    }
+}
+
+export async function suggestGoals(mission?: string, strategy?: string): Promise<string[]> {
+    if (!isGroqConfigured()) {
+        return ruleBased_suggestGoals();
+    }
+
+    try {
+        const missionContext = mission ? `Mission: ${mission}` : '';
+        const strategyContext = strategy ? `Strategy: ${strategy}` : '';
+
+        const prompt = `Based on this context:
+${missionContext}
+${strategyContext}
+
+Generate 3 specific, measurable goals that prove progress.
+Format: Return ONLY a JSON array of goal statements.
+Example: ["Achieve 99% uptime", "Reduce deployment time to < 1 hour", "Increase team satisfaction to 8/10"]`;
+
+        const result = await callGroqAPI(prompt, 'You are a goal-setting expert.');
+        const goals = JSON.parse(result);
+        return Array.isArray(goals) ? goals : [];
+    } catch (error) {
+        console.error('AI suggestion failed:', error);
+        return ruleBased_suggestGoals();
+    }
+}
+
 export async function analyzeText(text: string): Promise<Partial<SemanticAnalysis>> {
     if (!isGroqConfigured()) {
         return ruleBased_analyzeText(text);
@@ -221,6 +369,61 @@ function ruleBased_analyzeText(text: string): Partial<SemanticAnalysis> {
     const sentiment = (positiveCount - negativeCount) / Math.max(positiveCount + negativeCount, 1);
 
     return { sentiment, complexity, specificity };
+}
+
+function ruleBased_suggestPurpose(): string {
+    const templates = [
+        "To empower teams to deliver exceptional value through collaboration and innovation",
+        "To build sustainable solutions that transform how people work together",
+        "To create an environment where every team member can thrive and contribute meaningfully"
+    ];
+    return templates[Math.floor(Math.random() * templates.length)];
+}
+
+function ruleBased_suggestVision(): string {
+    const templates = [
+        "A future where teams operate with complete autonomy and alignment",
+        "An organization recognized for innovation, quality, and sustainable practices",
+        "A workplace where excellence and continuous improvement are the norm"
+    ];
+    return templates[Math.floor(Math.random() * templates.length)];
+}
+
+function ruleBased_suggestMission(): string {
+    const templates = [
+        "Deliver high-quality solutions through agile practices and continuous learning",
+        "Build products that solve real customer problems with speed and reliability",
+        "Create value by combining technical excellence with user-centric design"
+    ];
+    return templates[Math.floor(Math.random() * templates.length)];
+}
+
+function ruleBased_suggestStrategy(): string {
+    const templates = [
+        "Compete through rapid iteration, customer feedback loops, and technical excellence",
+        "Win by combining AI-powered automation with human-centered design principles",
+        "Lead the market by delivering exceptional quality at sustainable velocity"
+    ];
+    return templates[Math.floor(Math.random() * templates.length)];
+}
+
+function ruleBased_suggestValues(): string[] {
+    const allValues = [
+        "Innovation", "Customer Focus", "Integrity", "Excellence", "Collaboration",
+        "Transparency", "Accountability", "Continuous Learning", "Quality", "Speed"
+    ];
+    // Shuffle and take 3-5
+    const shuffled = allValues.sort(() => 0.5 - Math.random());
+    const count = 3 + Math.floor(Math.random() * 3); // 3-5 values
+    return shuffled.slice(0, count);
+}
+
+function ruleBased_suggestGoals(): string[] {
+    return [
+        "Achieve ≥95% customer satisfaction score",
+        "Reduce deployment lead time to <1 day",
+        "Maintain system uptime ≥99.9%"
+    ];
 }
 
 // ============================================================================
@@ -325,8 +528,14 @@ export const AI = {
     isConfigured: isGroqConfigured,
 
     // Suggestions
+    suggestPurpose,
+    suggestVision,
+    suggestMission,
+    suggestStrategy,
+    suggestValues,
     suggestPrinciples,
     suggestBehaviors,
+    suggestGoals,
     improveMission,
 
     // Analysis

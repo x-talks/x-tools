@@ -3,11 +3,13 @@ import { useWizard } from '../../core/store';
 import { PURPOSE_TEMPLATES, WIZARD_CONTENT } from '../../core/rules';
 import { WizardTextLayout } from './WizardTextLayout';
 import { useLibrary } from '../../hooks/useLibrary';
+import AI from '../../core/ai';
 
 export function Step1_Purpose() {
     const { state, dispatch } = useWizard();
     const [purpose, setPurpose] = useState(state.team?.teamPurpose || '');
     const { items: libraryItems, addToLibrary } = useLibrary('purpose', PURPOSE_TEMPLATES);
+    const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
     useEffect(() => {
         if (!purpose && !state.team?.teamPurpose) {
@@ -32,6 +34,18 @@ export function Step1_Purpose() {
         setPurpose(randomPurpose);
     };
 
+    const handleAISuggest = async () => {
+        setIsGeneratingAI(true);
+        try {
+            const suggestion = await AI.suggestPurpose(state.team?.teamName);
+            setPurpose(suggestion);
+        } catch (error) {
+            console.error('AI suggestion failed:', error);
+        } finally {
+            setIsGeneratingAI(false);
+        }
+    };
+
     return (
         <WizardTextLayout
             title="Step 1: Purpose"
@@ -41,9 +55,9 @@ export function Step1_Purpose() {
             onChange={setPurpose}
             libraryItems={libraryItems}
             onAddToLibrary={addToLibrary}
-            onAISuggest={() => console.log('AI Suggest')}
+            onAISuggest={handleAISuggest}
             onMagicFill={handleMagicFill}
-            isGeneratingAI={false}
+            isGeneratingAI={isGeneratingAI}
             onNext={handleNext}
             onPrev={() => dispatch({ type: 'PREV_STEP' })}
             isNextDisabled={!purpose.trim()}
