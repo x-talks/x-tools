@@ -454,7 +454,7 @@ function ruleBased_analyzeText(text: string): Partial<SemanticAnalysis> {
     return { sentiment, complexity, specificity };
 }
 
-function ruleBased_suggestPurpose(teamName?: string, industry?: string): string {
+function ruleBased_suggestPurpose(_teamName?: string, _industry?: string): string {
     const templates = [
         "To empower teams to deliver exceptional value through collaboration and innovation",
         "To build sustainable solutions that transform how people work together",
@@ -463,7 +463,7 @@ function ruleBased_suggestPurpose(teamName?: string, industry?: string): string 
     return templates[Math.floor(Math.random() * templates.length)];
 }
 
-function ruleBased_suggestVision(purpose?: string): string {
+function ruleBased_suggestVision(_purpose?: string): string {
     const templates = [
         "A future where teams operate with complete autonomy and alignment",
         "An organization recognized for innovation, quality, and sustainable practices",
@@ -472,7 +472,7 @@ function ruleBased_suggestVision(purpose?: string): string {
     return templates[Math.floor(Math.random() * templates.length)];
 }
 
-function ruleBased_suggestMission(vision?: string): string {
+function ruleBased_suggestMission(_vision?: string): string {
     const templates = [
         "Deliver high-quality solutions through agile practices and continuous learning",
         "Build products that solve real customer problems with speed and reliability",
@@ -481,7 +481,7 @@ function ruleBased_suggestMission(vision?: string): string {
     return templates[Math.floor(Math.random() * templates.length)];
 }
 
-function ruleBased_suggestStrategy(mission?: string): string {
+function ruleBased_suggestStrategy(_mission?: string): string {
     const templates = [
         "Compete through rapid iteration, customer feedback loops, and technical excellence",
         "Win by combining AI-powered automation with human-centered design principles",
