@@ -117,22 +117,21 @@ export function Step0_CreateTeam() {
                             className="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
                     </div>
-                    </div>
-                    
-                    <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-slate-200" />
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-white px-2 text-slate-500">Or generate with AI</span>
-                        </div>
-                    </div>
-
-                    <LogoGenerator 
-                        teamName={teamName} 
-                        onSelect={(dataUrl) => setTeamLogo(dataUrl)} 
-                    />
                 </div>
+
+                <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-slate-200" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-white px-2 text-slate-500">Or generate with AI</span>
+                    </div>
+                </div>
+
+                <LogoGenerator
+                    teamName={teamName}
+                    onSelect={(dataUrl) => setTeamLogo(dataUrl)}
+                />
             </CardContent>
             <CardFooter className="justify-end">
                 <Button onClick={handleNext}>Next: Mission Statement</Button>

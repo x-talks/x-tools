@@ -157,7 +157,7 @@ function generateSVGFromStyle(style: LogoStyle, teamName: string): string {
         case 'geometric':
             return generateGeometricLogo(size, center, style);
         case 'icon':
-            return generateIconLogo(size, center, style);
+            return generateIconLogo(size, style);
         case 'abstract':
             return generateAbstractLogo(size, center, style);
         default:
@@ -190,7 +190,7 @@ function generateGeometricLogo(size: number, center: number, style: LogoStyle): 
     </svg>`;
 }
 
-function generateIconLogo(size: number, center: number, style: LogoStyle): string {
+function generateIconLogo(size: number, style: LogoStyle): string {
     // Simple network/connection icon
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
         <rect x="0" y="0" width="${size}" height="${size}" rx="30" fill="${style.colors.primary}"/>
@@ -243,7 +243,6 @@ export async function generateLogoVariations(
 
     // Add rule-based variations with different styles
     const colors = selectColorsFromValues(values);
-    const firstLetter = teamName.charAt(0).toUpperCase();
 
     // Geometric variation
     variations.push({
@@ -254,7 +253,7 @@ export async function generateLogoVariations(
 
     // Icon variation
     variations.push({
-        svg: generateIconLogo(200, 100, { type: 'icon', colors, shape: 'square' }),
+        svg: generateIconLogo(200, { type: 'icon', colors, shape: 'square' }),
         style: { type: 'icon', colors, shape: 'square' },
         description: 'Network icon representing connectivity and collaboration'
     });

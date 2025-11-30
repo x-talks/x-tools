@@ -40,7 +40,7 @@ export function isGroqConfigured(): boolean {
     return !!getGroqApiKey();
 }
 
-async function callGroqAPI(prompt: string, systemPrompt?: string): Promise<string> {
+export async function callGroqAPI(prompt: string, systemPrompt?: string): Promise<string> {
     const apiKey = getGroqApiKey();
     if (!apiKey) {
         throw new Error('Groq API key not configured');
@@ -580,6 +580,7 @@ export const AI = {
     configure: configureGroq,
     getGroqApiKey,
     isConfigured: isGroqConfigured,
+    callGroqAPI,
 
     // Suggestions
     suggestPurpose,
