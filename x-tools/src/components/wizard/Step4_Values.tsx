@@ -6,11 +6,13 @@ import { SemanticTags } from '../SemanticTags';
 import { X } from 'lucide-react';
 import type { Value } from '../../core/types';
 import { useLibrary } from '../../hooks/useLibrary';
+import AI from '../../core/ai';
 
 export function Step4_Values() {
     const { state, dispatch } = useWizard();
     const [selectedValues, setSelectedValues] = useState<Value[]>(state.values);
     const { items: libraryItems, addToLibrary } = useLibrary('values', VALUES_LIST as Value[]);
+    const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
     // Pre-fill with examples if empty
     useEffect(() => {
@@ -63,6 +65,27 @@ export function Step4_Values() {
         })));
     };
 
+    const handleAISuggest = async () => {
+        setIsGeneratingAI(true);
+        try {
+            const suggestions = await AI.suggestValues(
+                state.team?.teamPurpose
+            );
+            const newValues = suggestions.map((label, i) => ({
+                id: `val-ai-${Date.now()}-${i}`,
+                label,
+                description: 'AI suggested core value',
+                source: 'system' as const,
+                explanation: 'AI Suggested'
+            }));
+            setSelectedValues(prev => [...prev, ...newValues].slice(0, 5)); // Max 5 values
+        } catch (error) {
+            console.error('AI suggestion failed:', error);
+        } finally {
+            setIsGeneratingAI(false);
+        }
+    };
+
     return (
         <WizardStepLayout
             title="Step 4: Values"
@@ -79,7 +102,7 @@ export function Step4_Values() {
                 source: 'user',
                 explanation: 'Added to library'
             })}
-            onAISuggest={() => console.log('AI Suggest')}
+            onAISuggest={handleAISuggest}
             onMagicFill={handleMagicFill}
             renderItem={(val) => (
                 <div className="flex items-start gap-2 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
@@ -94,7 +117,7 @@ export function Step4_Values() {
             )}
             getLabel={(val) => val.label}
             getId={(val) => val.id}
-            isGeneratingAI={false}
+            isGeneratingAI={isGeneratingAI}
             onNext={handleNext}
             onPrev={() => dispatch({ type: 'PREV_STEP' })}
             isNextDisabled={selectedValues.length === 0}

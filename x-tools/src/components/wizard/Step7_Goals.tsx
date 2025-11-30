@@ -4,6 +4,7 @@ import { GOAL_TEMPLATES, WIZARD_CONTENT } from '../../core/rules';
 import { WizardStepLayout } from './WizardStepLayout';
 import { X } from 'lucide-react';
 import { useLibrary } from '../../hooks/useLibrary';
+import AI from '../../core/ai';
 
 export function Step7_Goals() {
     const { state, dispatch } = useWizard();
@@ -11,6 +12,7 @@ export function Step7_Goals() {
         (state.goals || []).map((g, i) => ({ id: `goal-${i}`, label: g }))
     );
     const { items: libraryItems, addToLibrary } = useLibrary('goals', GOAL_TEMPLATES);
+    const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
     useEffect(() => {
         if (goals.length === 0 && (!state.goals || state.goals.length === 0)) {
@@ -44,6 +46,25 @@ export function Step7_Goals() {
         setGoals(selected.map((g, i) => ({ id: `goal-magic-${i}`, label: g })));
     };
 
+    const handleAISuggest = async () => {
+        setIsGeneratingAI(true);
+        try {
+            const suggestions = await AI.suggestGoals(
+                state.mission?.text,
+                state.strategy?.text
+            );
+            const newGoals = suggestions.map((label, i) => ({
+                id: `goal-ai-${Date.now()}-${i}`,
+                label
+            }));
+            setGoals(prev => [...prev, ...newGoals]);
+        } catch (error) {
+            console.error('AI suggestion failed:', error);
+        } finally {
+            setIsGeneratingAI(false);
+        }
+    };
+
     return (
         <WizardStepLayout
             title="Step 7: Goals"
@@ -54,7 +75,7 @@ export function Step7_Goals() {
             onAdd={handleAdd}
             onReorder={handleReorder}
             onAddToLibrary={addToLibrary}
-            onAISuggest={() => console.log('AI Suggest')}
+            onAISuggest={handleAISuggest}
             onMagicFill={handleMagicFill}
             renderItem={(g) => (
                 <div className="flex items-center justify-between p-3 bg-slate-50 rounded-md border border-slate-200 w-full">
@@ -66,7 +87,7 @@ export function Step7_Goals() {
             )}
             getLabel={(g) => g.label}
             getId={(g) => g.id}
-            isGeneratingAI={false}
+            isGeneratingAI={isGeneratingAI}
             onNext={handleNext}
             onPrev={() => dispatch({ type: 'PREV_STEP' })}
             isNextDisabled={goals.length === 0}

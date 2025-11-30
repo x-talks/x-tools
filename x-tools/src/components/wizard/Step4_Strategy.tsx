@@ -3,6 +3,7 @@ import { useWizard } from '../../core/store';
 import { STRATEGY_TEMPLATES, WIZARD_CONTENT } from '../../core/rules';
 import { WizardTextLayout } from './WizardTextLayout';
 import { useLibrary } from '../../hooks/useLibrary';
+import AI from '../../core/ai';
 
 export function Step4_Strategy() {
     const { state, dispatch } = useWizard();
@@ -11,6 +12,7 @@ export function Step4_Strategy() {
     // Convert strategy templates to strings for library
     const staticLibrary = useMemo(() => STRATEGY_TEMPLATES.map(s => s.Strategy), []);
     const { items: libraryItems, addToLibrary } = useLibrary('strategy', staticLibrary);
+    const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
     useEffect(() => {
         if (!strategyText && !state.strategy?.text) {
@@ -34,6 +36,21 @@ export function Step4_Strategy() {
         setStrategyText(randomStrategy);
     };
 
+    const handleAISuggest = async () => {
+        setIsGeneratingAI(true);
+        try {
+            const suggestion = await AI.suggestStrategy(
+                state.mission?.text,
+                state.values.map(v => v.label)
+            );
+            setStrategyText(suggestion);
+        } catch (error) {
+            console.error('AI suggestion failed:', error);
+        } finally {
+            setIsGeneratingAI(false);
+        }
+    };
+
     return (
         <WizardTextLayout
             title="Step 4: Strategy"
@@ -43,9 +60,9 @@ export function Step4_Strategy() {
             onChange={setStrategyText}
             libraryItems={libraryItems}
             onAddToLibrary={addToLibrary}
-            onAISuggest={() => console.log('AI Suggest')}
+            onAISuggest={handleAISuggest}
             onMagicFill={handleMagicFill}
-            isGeneratingAI={false}
+            isGeneratingAI={isGeneratingAI}
             onNext={handleNext}
             onPrev={() => dispatch({ type: 'PREV_STEP' })}
             isNextDisabled={!strategyText.trim()}
