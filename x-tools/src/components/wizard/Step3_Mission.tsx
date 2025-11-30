@@ -38,8 +38,8 @@ export function Step3_Mission() {
         setIsGeneratingAI(true);
         try {
             const suggestion = await AI.suggestMission(
-                state.team?.teamPurpose,
-                state.vision?.text
+                state.vision?.text || '',
+                mission
             );
             setMission(suggestion);
         } catch (error) {

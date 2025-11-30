@@ -40,8 +40,8 @@ export function Step4_Strategy() {
         setIsGeneratingAI(true);
         try {
             const suggestion = await AI.suggestStrategy(
-                state.mission?.text,
-                state.values.map(v => v.label)
+                state.mission?.text || '',
+                strategyText
             );
             setStrategyText(suggestion);
         } catch (error) {

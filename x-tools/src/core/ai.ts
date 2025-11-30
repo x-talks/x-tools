@@ -8,6 +8,7 @@
  */
 
 import { SemanticAnalysis, SemanticTag, extractSemanticTags } from './ontology';
+import { WIZARD_CONTENT } from './rules';
 
 // ============================================================================
 // GROQ API INTEGRATION (Free Tier)
@@ -171,99 +172,148 @@ Determine if there's a meaningful relationship. Return ONLY a JSON object:
     }
 }
 
-export async function suggestPurpose(teamName?: string, industry?: string): Promise<string> {
+export async function suggestPurpose(teamName?: string, industry?: string, userInput?: string): Promise<string> {
     if (!isGroqConfigured()) {
-        return ruleBased_suggestPurpose();
+        return ruleBased_suggestPurpose(teamName, industry);
     }
 
     try {
-        const context = teamName ? `Team name: ${teamName}` : '';
-        const industryContext = industry ? `Industry: ${industry}` : '';
+        let prompt = '';
+        const formula = WIZARD_CONTENT.Purpose.Formula;
 
-        const prompt = `Generate a compelling team purpose statement.
-${context}
-${industryContext}
+        if (userInput && userInput.trim().length > 5) {
+            prompt = `Refine this Purpose statement to strictly follow the formula: "${formula}".
+            
+User Input: "${userInput}"
 
-The purpose should explain why the team exists and its ultimate impact.
-Format: Return ONLY the purpose statement, no explanation.
-Keep it to 1-2 sentences, inspirational but authentic.`;
+Instructions:
+1. Identify the parts in the input that correspond to [What We Do], [For Whom], and [Ultimate Impact].
+2. Reassemble them into a single, clear sentence following the formula.
+3. Fix grammar and flow, but keep the user's core meaning.
+4. Return ONLY the final sentence.`;
+        } else {
+            prompt = `Generate a Purpose statement for a team named "${teamName || 'Team'}" in the "${industry || 'Technology'}" industry.
+            
+Formula: "${formula}"
 
-        return await callGroqAPI(prompt, 'You are a team alignment expert.');
+Instructions:
+1. Create a statement that fits the formula.
+2. Make it inspiring but grounded.
+3. Return ONLY the final sentence.`;
+        }
+
+        return await callGroqAPI(prompt, 'You are an expert in organizational design.');
     } catch (error) {
         console.error('AI suggestion failed:', error);
-        return ruleBased_suggestPurpose();
+        return ruleBased_suggestPurpose(teamName, industry);
     }
 }
 
-export async function suggestVision(purpose?: string, values?: string[]): Promise<string> {
+export async function suggestVision(purpose: string, userInput?: string): Promise<string> {
     if (!isGroqConfigured()) {
-        return ruleBased_suggestVision();
+        return ruleBased_suggestVision(purpose);
     }
 
     try {
-        const purposeContext = purpose ? `Purpose: ${purpose}` : '';
-        const valuesContext = values?.length ? `Values: ${values.join(', ')}` : '';
+        let prompt = '';
+        const formula = WIZARD_CONTENT.Vision.Formula;
 
-        const prompt = `Generate an inspiring vision statement.
-${purposeContext}
-${valuesContext}
+        if (userInput && userInput.trim().length > 5) {
+            prompt = `Refine this Vision statement to strictly follow the formula: "${formula}".
+            
+User Input: "${userInput}"
+Context (Purpose): "${purpose}"
 
-The vision should describe the future state the team wants to create.
-Format: Return ONLY the vision statement, no explanation.
-Keep it to 1-2 sentences, aspirational and forward-looking.`;
+Instructions:
+1. Identify [A Future State], [For Whom], and [Transformation/Impact].
+2. Reassemble into a single, aspirational sentence.
+3. Return ONLY the final sentence.`;
+        } else {
+            prompt = `Generate a Vision statement based on this Purpose: "${purpose}"
+            
+Formula: "${formula}"
 
-        return await callGroqAPI(prompt, 'You are a strategic vision expert.');
+Instructions:
+1. Create a future-looking statement fitting the formula.
+2. Return ONLY the final sentence.`;
+        }
+
+        return await callGroqAPI(prompt, 'You are a strategic visionary.');
     } catch (error) {
         console.error('AI suggestion failed:', error);
-        return ruleBased_suggestVision();
+        return ruleBased_suggestVision(purpose);
     }
 }
 
-export async function suggestMission(purpose?: string, vision?: string): Promise<string> {
+export async function suggestMission(vision: string, userInput?: string): Promise<string> {
     if (!isGroqConfigured()) {
-        return ruleBased_suggestMission();
+        return ruleBased_suggestMission(vision);
     }
 
     try {
-        const purposeContext = purpose ? `Purpose: ${purpose}` : '';
-        const visionContext = vision ? `Vision: ${vision}` : '';
+        let prompt = '';
+        const formula = WIZARD_CONTENT.Mission.Formula;
 
-        const prompt = `Generate a clear mission statement.
-${purposeContext}
-${visionContext}
+        if (userInput && userInput.trim().length > 5) {
+            prompt = `Refine this Mission statement to strictly follow the formula: "${formula}".
+            
+User Input: "${userInput}"
+Context (Vision): "${vision}"
 
-The mission should define what the team does every day to achieve its purpose.
-Format: Return ONLY the mission statement, no explanation.
-Keep it to 1-2 sentences, specific and actionable.`;
+Instructions:
+1. Identify [What We Do], [What We Deliver/How], and [Target/Problem].
+2. Reassemble into a single, operational sentence.
+3. Return ONLY the final sentence.`;
+        } else {
+            prompt = `Generate a Mission statement based on this Vision: "${vision}"
+            
+Formula: "${formula}"
 
-        return await callGroqAPI(prompt, 'You are a strategic planning expert.');
+Instructions:
+1. Create an actionable statement fitting the formula.
+2. Return ONLY the final sentence.`;
+        }
+
+        return await callGroqAPI(prompt, 'You are an operations strategist.');
     } catch (error) {
         console.error('AI suggestion failed:', error);
-        return ruleBased_suggestMission();
+        return ruleBased_suggestMission(vision);
     }
 }
 
-export async function suggestStrategy(mission?: string, values?: string[]): Promise<string> {
+export async function suggestStrategy(mission: string, userInput?: string): Promise<string> {
     if (!isGroqConfigured()) {
-        return ruleBased_suggestStrategy();
+        return ruleBased_suggestStrategy(mission);
     }
 
     try {
-        const missionContext = mission ? `Mission: ${mission}` : '';
-        const valuesContext = values?.length ? `Values: ${values.join(', ')}` : '';
+        let prompt = '';
+        const formula = WIZARD_CONTENT.Strategy.Formula;
 
-        const prompt = `Generate a strategic approach statement.
-${missionContext}
-${valuesContext}
+        if (userInput && userInput.trim().length > 5) {
+            prompt = `Refine this Strategy statement to strictly follow the formula: "${formula}".
+            
+User Input: "${userInput}"
+Context (Mission): "${mission}"
 
-The strategy should explain HOW the team will win and differentiate.
-Format: Return ONLY the strategy statement, no explanation.
-Keep it to 2-3 sentences, focused on competitive advantage.`;
+Instructions:
+1. Identify [Our Differentiation], [Through What Approach], and [Market/Problem].
+2. Reassemble into a single, strategic sentence.
+3. Return ONLY the final sentence.`;
+        } else {
+            prompt = `Generate a Strategy statement based on this Mission: "${mission}"
+            
+Formula: "${formula}"
 
-        return await callGroqAPI(prompt, 'You are a business strategy expert.');
+Instructions:
+1. Create a competitive strategy fitting the formula.
+2. Return ONLY the final sentence.`;
+        }
+
+        return await callGroqAPI(prompt, 'You are a business strategist.');
     } catch (error) {
         console.error('AI suggestion failed:', error);
-        return ruleBased_suggestStrategy();
+        return ruleBased_suggestStrategy(mission);
     }
 }
 
@@ -404,7 +454,7 @@ function ruleBased_analyzeText(text: string): Partial<SemanticAnalysis> {
     return { sentiment, complexity, specificity };
 }
 
-function ruleBased_suggestPurpose(): string {
+function ruleBased_suggestPurpose(teamName?: string, industry?: string): string {
     const templates = [
         "To empower teams to deliver exceptional value through collaboration and innovation",
         "To build sustainable solutions that transform how people work together",
@@ -413,7 +463,7 @@ function ruleBased_suggestPurpose(): string {
     return templates[Math.floor(Math.random() * templates.length)];
 }
 
-function ruleBased_suggestVision(): string {
+function ruleBased_suggestVision(purpose?: string): string {
     const templates = [
         "A future where teams operate with complete autonomy and alignment",
         "An organization recognized for innovation, quality, and sustainable practices",
@@ -422,7 +472,7 @@ function ruleBased_suggestVision(): string {
     return templates[Math.floor(Math.random() * templates.length)];
 }
 
-function ruleBased_suggestMission(): string {
+function ruleBased_suggestMission(vision?: string): string {
     const templates = [
         "Deliver high-quality solutions through agile practices and continuous learning",
         "Build products that solve real customer problems with speed and reliability",
@@ -431,7 +481,7 @@ function ruleBased_suggestMission(): string {
     return templates[Math.floor(Math.random() * templates.length)];
 }
 
-function ruleBased_suggestStrategy(): string {
+function ruleBased_suggestStrategy(mission?: string): string {
     const templates = [
         "Compete through rapid iteration, customer feedback loops, and technical excellence",
         "Win by combining AI-powered automation with human-centered design principles",

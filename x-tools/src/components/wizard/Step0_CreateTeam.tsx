@@ -134,7 +134,7 @@ export function Step0_CreateTeam() {
                 />
             </CardContent>
             <CardFooter className="justify-end">
-                <Button onClick={handleNext}>Next: Mission Statement</Button>
+                <Button onClick={handleNext}>Next</Button>
             </CardFooter>
         </Card >
     );

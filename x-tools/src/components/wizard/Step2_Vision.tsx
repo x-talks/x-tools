@@ -43,8 +43,8 @@ export function Step2_Vision() {
         setIsGeneratingAI(true);
         try {
             const suggestion = await AI.suggestVision(
-                state.team?.teamPurpose,
-                state.values.map(v => v.label)
+                state.team?.teamPurpose || '',
+                visionText
             );
             setVisionText(suggestion);
         } catch (error) {

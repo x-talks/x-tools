@@ -8,6 +8,8 @@ import ReactFlow, {
     useNodesState,
     useEdgesState,
     MarkerType,
+    addEdge,
+    Connection,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useWizard } from '../core/store';
@@ -179,7 +181,57 @@ export function SemanticRelationshipGraph({ className }: { className?: string })
     }, [graph]);
 
     const [nodes, , onNodesChange] = useNodesState(initialNodes);
-    const [edges, , onEdgesChange] = useEdgesState(initialEdges);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+    const onConnect = useCallback((params: Connection) => {
+        if (!params.source || !params.target) return;
+
+        // Create a new manual edge
+        const newEdge: Edge = {
+            id: `manual-${params.source}-${params.target}-${Date.now()}`,
+            source: params.source,
+            target: params.target,
+            sourceHandle: params.sourceHandle,
+            targetHandle: params.targetHandle,
+            type: 'straight',
+            label: '🔗 Manual',
+            animated: false,
+            style: {
+                stroke: '#8b5cf6',
+                strokeWidth: 2,
+            },
+            markerEnd: {
+                type: MarkerType.ArrowClosed,
+                color: '#8b5cf6',
+            },
+        };
+        setEdges((eds) => addEdge(newEdge, eds));
+
+        // Find node types from the graph
+        const sourceNode = graph.nodes.find(n => n.id === params.source);
+        const targetNode = graph.nodes.find(n => n.id === params.target);
+
+        // Save the manual relationship to state
+        const { dispatch } = useWizard();
+        const existingRelationships = state.relationships || [];
+        const newRelationship = {
+            id: `manual-rel-${Date.now()}`,
+            sourceId: params.source,
+            targetId: params.target,
+            sourceType: (sourceNode?.type as any) || 'value',
+            targetType: (targetNode?.type as any) || 'value',
+            relationType: 'user_defined' as RelationType,
+            strength: 80,
+            confidence: 100,
+            explanation: 'Manually connected by user',
+            auto_detected: false,
+        };
+
+        dispatch({
+            type: 'SET_RELATIONSHIPS',
+            payload: [...existingRelationships, newRelationship]
+        });
+    }, [setEdges, graph.nodes, state.relationships]);
 
     const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
         console.log('Node clicked:', node);
@@ -237,6 +289,7 @@ export function SemanticRelationshipGraph({ className }: { className?: string })
                 edges={edges}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
                 onNodeClick={onNodeClick}
                 fitView
                 attributionPosition="bottom-left"

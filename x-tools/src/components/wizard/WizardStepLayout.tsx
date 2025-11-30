@@ -86,29 +86,25 @@ export function WizardStepLayout<T>({
             <CardContent className="space-y-6">
                 <SideNote content={sideNoteContent} />
 
-                {/* Selected Items (Drag & Drop) */}
-                <div className="space-y-4">
-                    <h4 className="text-sm font-medium">Your Selection (Drag to reorder)</h4>
-                    {selectedItems.length === 0 ? (
-                        <div className="text-sm text-slate-400 italic p-4 border border-dashed border-slate-200 rounded-lg text-center">
-                            No items selected yet. Use the input below or choose from the library.
-                        </div>
-                    ) : (
-                        <DraggableList
-                            items={selectedItems.map(item => ({
-                                id: getId(item),
-                                content: renderItem(item)
-                            }))}
-                            onReorder={(reordered) => {
-                                const newOrder = reordered.map(r => selectedItems.find(i => getId(i) === r.id)!);
-                                onReorder(newOrder);
-                            }}
-                        />
-                    )}
-                </div>
-
                 {/* Input Area */}
                 <div className="space-y-2">
+                    {/* Action Buttons Row (Above Input) */}
+                    <div className="flex justify-end gap-2 mb-1">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={onAISuggest}
+                            disabled={isGeneratingAI}
+                            className="text-purple-600 border-purple-200 hover:bg-purple-50 dark:border-purple-900 dark:hover:bg-purple-900/20"
+                        >
+                            <Sparkles className={`h-4 w-4 mr-2 ${isGeneratingAI ? 'animate-spin' : ''}`} />
+                            {isGeneratingAI ? 'Thinking...' : 'AI Suggest'}
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={onMagicFill} title="Magic Fill">
+                            <Wand2 className="h-4 w-4 text-slate-400" />
+                        </Button>
+                    </div>
+
                     <div className="flex gap-2">
                         <input
                             className="flex-1 h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
@@ -122,24 +118,7 @@ export function WizardStepLayout<T>({
                         </Button>
                     </div>
 
-                    {/* Action Buttons Row */}
-                    <div className="flex flex-wrap gap-2 justify-between items-center">
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={onAISuggest}
-                                disabled={isGeneratingAI}
-                                className="text-purple-600 border-purple-200 hover:bg-purple-50 dark:border-purple-900 dark:hover:bg-purple-900/20"
-                            >
-                                <Sparkles className={`h-4 w-4 mr-2 ${isGeneratingAI ? 'animate-spin' : ''}`} />
-                                {isGeneratingAI ? 'Thinking...' : 'AI Suggest'}
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={onMagicFill} title="Magic Fill">
-                                <Wand2 className="h-4 w-4 text-slate-400" />
-                            </Button>
-                        </div>
-
+                    <div className="flex justify-end">
                         <Button
                             variant="ghost"
                             size="sm"
@@ -157,6 +136,27 @@ export function WizardStepLayout<T>({
                         <p className="text-xs text-slate-400 italic mt-1">
                             Example: "{example}"
                         </p>
+                    )}
+                </div>
+
+                {/* Selected Items (Drag & Drop) */}
+                <div className="space-y-4">
+                    <h4 className="text-sm font-medium">Your Selection (Drag to reorder)</h4>
+                    {selectedItems.length === 0 ? (
+                        <div className="text-sm text-slate-400 italic p-4 border border-dashed border-slate-200 rounded-lg text-center">
+                            No items selected yet. Use the input above or choose from the library.
+                        </div>
+                    ) : (
+                        <DraggableList
+                            items={selectedItems.map(item => ({
+                                id: getId(item),
+                                content: renderItem(item)
+                            }))}
+                            onReorder={(reordered) => {
+                                const newOrder = reordered.map(r => selectedItems.find(i => getId(i) === r.id)!);
+                                onReorder(newOrder);
+                            }}
+                        />
                     )}
                 </div>
 

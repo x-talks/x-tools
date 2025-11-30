@@ -37,7 +37,7 @@ export function Step1_Purpose() {
     const handleAISuggest = async () => {
         setIsGeneratingAI(true);
         try {
-            const suggestion = await AI.suggestPurpose(state.team?.teamName);
+            const suggestion = await AI.suggestPurpose(state.team?.teamName, undefined, purpose);
             setPurpose(suggestion);
         } catch (error) {
             console.error('AI suggestion failed:', error);
