@@ -5,7 +5,7 @@
  * Supports relationship tracking, conflict detection, and AI analysis
  */
 
-import { WizardState } from './types';
+import { WizardState, RelationType, SemanticRelationship } from './types';
 
 // ============================================================================
 // SEMANTIC TAGS & CONCEPTS
@@ -38,32 +38,6 @@ export const SEMANTIC_CONCEPTS = {
 } as const;
 
 export type ConceptCategory = keyof typeof SEMANTIC_CONCEPTS;
-
-// ============================================================================
-// RELATIONSHIP TYPES
-// ============================================================================
-
-export enum RelationType {
-    DERIVES_FROM = 'derives_from',      // Principle derives from Value
-    IMPLEMENTS = 'implements',           // Behavior implements Principle
-    SUPPORTS = 'supports',               // Value supports Goal
-    CONFLICTS_WITH = 'conflicts_with',   // Tension between items
-    REINFORCES = 'reinforces',           // Positive correlation
-    REQUIRES = 'requires',               // Dependency
-}
-
-export interface SemanticRelationship {
-    id: string;
-    sourceId: string;
-    targetId: string;
-    sourceType: 'value' | 'principle' | 'behavior' | 'goal';
-    targetType: 'value' | 'principle' | 'behavior' | 'goal';
-    relationType: RelationType;
-    strength: number; // 0-100
-    confidence: number; // 0-100 (AI confidence score)
-    explanation?: string;
-    auto_detected: boolean;
-}
 
 // ============================================================================
 // SEMANTIC ANALYSIS
@@ -319,6 +293,11 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
             metadata: { createdAt: new Date().toISOString(), source: 'user' }
         });
     });
+
+    // Add explicit relationships from state
+    if (state.relationships) {
+        relationships.push(...state.relationships);
+    }
 
     // Detect conflicts
     const conflicts: ConflictDetection[] = [];

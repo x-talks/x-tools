@@ -12,9 +12,16 @@ export function TeamCanvas() {
                     <h1 className="text-4xl font-bold text-slate-900">Team Canvas</h1>
                     <p className="text-slate-500 mt-1">Strategic Alignment & Culture Map</p>
                 </div>
-                <div className="text-right">
-                    <div className="text-xl font-semibold text-slate-900">{team?.teamName || 'Untitled Team'}</div>
-                    <div className="text-slate-500">{new Date().toLocaleDateString()}</div>
+                <div className="flex items-center gap-4 text-right">
+                    <div>
+                        <div className="text-xl font-semibold text-slate-900">{team?.teamName || 'Untitled Team'}</div>
+                        <div className="text-slate-500">{new Date().toLocaleDateString()}</div>
+                    </div>
+                    {team?.logo && (
+                        <div className="h-16 w-16 rounded-lg overflow-hidden border border-slate-200 shadow-sm bg-white">
+                            <img src={team.logo} alt="Team Logo" className="h-full w-full object-contain" />
+                        </div>
+                    )}
                 </div>
             </div>
 

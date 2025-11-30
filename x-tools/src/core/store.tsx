@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useReducer } from 'react';
-import type { WizardState, Team, Mission, Vision, Value, Behavior, Principle, AuditLogEntry, Role, Person, Strategy } from './types';
+import type { WizardState, Team, Mission, Vision, Value, Behavior, Principle, AuditLogEntry, Role, Person, Strategy, SemanticRelationship } from './types';
 
 const initialState: WizardState = {
     team: null,
@@ -14,6 +14,7 @@ const initialState: WizardState = {
     people: [],
     auditLog: [],
     currentStep: 0,
+    relationships: [],
 };
 
 type Action =
@@ -27,6 +28,7 @@ type Action =
     | { type: 'SET_STRATEGY'; payload: Strategy }
     | { type: 'SET_ROLES'; payload: Role[] }
     | { type: 'SET_PEOPLE'; payload: Person[] }
+    | { type: 'SET_RELATIONSHIPS'; payload: SemanticRelationship[] }
     | { type: 'LOAD_STATE'; payload: WizardState }
     | { type: 'NEXT_STEP' }
     | { type: 'PREV_STEP' }
@@ -68,6 +70,9 @@ export function wizardReducer(state: WizardState, action: Action): WizardState {
         case 'SET_PEOPLE':
             logEntry = { user: 'current-user', action: 'edited', ts: now, details: 'People updated' };
             return { ...state, people: action.payload, auditLog: [...state.auditLog, logEntry] };
+        case 'SET_RELATIONSHIPS':
+            logEntry = { user: 'current-user', action: 'edited', ts: now, details: 'Relationships updated' };
+            return { ...state, relationships: action.payload, auditLog: [...state.auditLog, logEntry] };
         case 'LOAD_STATE':
             return { ...action.payload, auditLog: [...action.payload.auditLog, { user: 'system', action: 'edited', ts: now, details: 'Team loaded from storage' }] };
         case 'NEXT_STEP':

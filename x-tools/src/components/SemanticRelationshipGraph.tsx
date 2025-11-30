@@ -11,7 +11,8 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useWizard } from '../core/store';
-import { buildOntologyGraph, enhanceWithAIRelationships, RelationType } from '../core/ontology';
+import { buildOntologyGraph, enhanceWithAIRelationships } from '../core/ontology';
+import { RelationType } from '../core/types';
 import dagre from 'dagre';
 
 const LAYER_COLORS = {
@@ -185,8 +186,52 @@ export function SemanticRelationshipGraph({ className }: { className?: string })
         // Future: Show node details panel
     }, []);
 
+    const { dispatch } = useWizard();
+
+    const handleSaveRelationships = () => {
+        const newRelationships = graph.relationships.filter(r => r.auto_detected);
+        if (newRelationships.length > 0) {
+            // Remove auto_detected flag when saving
+            const savedRelationships = newRelationships.map(r => ({ ...r, auto_detected: false }));
+
+            // Merge with existing relationships
+            const existingRelationships = state.relationships || [];
+            // Filter out duplicates based on IDs or source/target pairs
+            const uniqueNew = savedRelationships.filter(newRel =>
+                !existingRelationships.some(ex =>
+                    (ex.sourceId === newRel.sourceId && ex.targetId === newRel.targetId) ||
+                    (ex.sourceId === newRel.targetId && ex.targetId === newRel.sourceId)
+                )
+            );
+
+            if (uniqueNew.length > 0) {
+                dispatch({
+                    type: 'SET_RELATIONSHIPS',
+                    payload: [...existingRelationships, ...uniqueNew]
+                });
+            }
+        }
+    };
+
+    const autoDetectedCount = graph.relationships.filter(r => r.auto_detected).length;
+
     return (
-        <div className={`w-full h-[600px] border-2 border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden ${className || ''}`}>
+        <div className={`w-full h-[600px] border-2 border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden relative ${className || ''}`}>
+            {autoDetectedCount > 0 && (
+                <div className="absolute top-4 left-4 z-10 bg-white/90 dark:bg-slate-800/90 p-2 rounded shadow-md border border-purple-200 backdrop-blur-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="text-xs font-medium text-purple-700 dark:text-purple-300">
+                            ✨ {autoDetectedCount} AI-detected relationships
+                        </div>
+                        <button
+                            onClick={handleSaveRelationships}
+                            className="px-2 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 transition-colors"
+                        >
+                            Save to Graph
+                        </button>
+                    </div>
+                </div>
+            )}
             <ReactFlow
                 nodes={nodes}
                 edges={edges}

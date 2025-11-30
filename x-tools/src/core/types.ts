@@ -64,6 +64,28 @@ export interface Principle {
     ruleId?: string;
 }
 
+export enum RelationType {
+    DERIVES_FROM = 'derives_from',
+    IMPLEMENTS = 'implements',
+    SUPPORTS = 'supports',
+    CONFLICTS_WITH = 'conflicts_with',
+    REINFORCES = 'reinforces',
+    REQUIRES = 'requires',
+}
+
+export interface SemanticRelationship {
+    id: string;
+    sourceId: string;
+    targetId: string;
+    sourceType: 'value' | 'principle' | 'behavior' | 'goal';
+    targetType: 'value' | 'principle' | 'behavior' | 'goal';
+    relationType: RelationType;
+    strength: number; // 0-100
+    confidence: number; // 0-100 (AI confidence score)
+    explanation?: string;
+    auto_detected: boolean;
+}
+
 export interface AuditLogEntry {
     user: string;
     action: 'created' | 'edited';
@@ -84,4 +106,5 @@ export interface WizardState {
     auditLog: AuditLogEntry[];
     currentStep: number;
     strategy?: Strategy;
+    relationships?: SemanticRelationship[];
 }
