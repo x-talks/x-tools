@@ -138,6 +138,39 @@ Return ONLY the improved mission, no explanation.`;
     }
 }
 
+export async function detectSemanticRelationships(
+    sourceText: string,
+    targetText: string,
+    sourceType: string,
+    targetType: string
+): Promise<{ hasRelationship: boolean; relationshipType?: string; strength?: number; explanation?: string }> {
+    if (!isGroqConfigured()) {
+        return ruleBased_detectRelationship(sourceText, targetText);
+    }
+
+    try {
+        const prompt = `Analyze the semantic relationship between these two items:
+
+Source (${sourceType}): "${sourceText}"
+Target (${targetType}): "${targetText}"
+
+Determine if there's a meaningful relationship. Return ONLY a JSON object:
+{
+  "hasRelationship": true/false,
+  "relationshipType": "derives_from" | "implements" | "supports" | "reinforces" | null,
+  "strength": 0-100,
+  "explanation": "brief explanation"
+}`;
+
+        const result = await callGroqAPI(prompt, 'You are an ontology analysis expert.');
+        const relationship = JSON.parse(result);
+        return relationship;
+    } catch (error) {
+        console.error('AI relationship detection failed:', error);
+        return ruleBased_detectRelationship(sourceText, targetText);
+    }
+}
+
 export async function suggestPurpose(teamName?: string, industry?: string): Promise<string> {
     if (!isGroqConfigured()) {
         return ruleBased_suggestPurpose();
@@ -426,6 +459,27 @@ function ruleBased_suggestGoals(): string[] {
     ];
 }
 
+function ruleBased_detectRelationship(sourceText: string, targetText: string): { hasRelationship: boolean; relationshipType?: string; strength?: number; explanation?: string } {
+    // Simple keyword overlap detection
+    const sourceWords = sourceText.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+    const targetWords = targetText.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+
+    const commonWords = sourceWords.filter(w => targetWords.includes(w));
+    const overlapRatio = commonWords.length / Math.min(sourceWords.length, targetWords.length);
+
+    if (overlapRatio > 0.3) {
+        return {
+            hasRelationship: true,
+            relationshipType: 'reinforces',
+            strength: Math.min(100, Math.round(overlapRatio * 100)),
+            explanation: `Shares ${commonWords.length} key concepts: ${commonWords.slice(0, 3).join(', ')}`
+        };
+    }
+
+    return { hasRelationship: false };
+}
+
+
 // ============================================================================
 // TRANSFORMERS.JS INTEGRATION (Browser-based ML)
 // ============================================================================
@@ -541,6 +595,7 @@ export const AI = {
     // Analysis
     analyzeText,
     classifyTextLocal,
+    detectSemanticRelationships,
 
     // Loading
     loadTransformersJS,

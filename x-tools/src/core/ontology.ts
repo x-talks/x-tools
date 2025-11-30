@@ -338,6 +338,84 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
 }
 
 /**
+ * Enhance ontology graph with AI-detected semantic relationships
+ * This automatically finds connections between nodes that weren't explicitly defined
+ */
+export async function enhanceWithAIRelationships(graph: OntologyGraph): Promise<OntologyGraph> {
+    const { default: AI } = await import('./ai');
+
+    if (!AI.isConfigured()) {
+        // Skip AI enhancement if not configured
+        return graph;
+    }
+
+    const newRelationships: SemanticRelationship[] = [...graph.relationships];
+    const nodes = graph.nodes;
+
+    // Only check nodes that don't already have relationships
+    const nodePairs: Array<[OntologyNode, OntologyNode]> = [];
+
+    for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+            const node1 = nodes[i];
+            const node2 = nodes[j];
+
+            // Skip if they're already connected
+            const alreadyConnected = newRelationships.some(
+                r => (r.sourceId === node1.id && r.targetId === node2.id) ||
+                    (r.sourceId === node2.id && r.targetId === node1.id)
+            );
+
+            if (!alreadyConnected && node1.layer !== node2.layer) {
+                nodePairs.push([node1, node2]);
+            }
+        }
+    }
+
+    // Limit to avoid too many API calls (max 10 checks)
+    const limitedPairs = nodePairs.slice(0, 10);
+
+    try {
+        const results = await Promise.all(
+            limitedPairs.map(async ([node1, node2]) => {
+                const result = await AI.detectSemanticRelationships(
+                    node1.text || node1.label,
+                    node2.text || node2.label,
+                    node1.type,
+                    node2.type
+                );
+                return { node1, node2, result };
+            })
+        );
+
+        results.forEach(({ node1, node2, result }) => {
+            if (result.hasRelationship && result.strength && result.strength > 50) {
+                newRelationships.push({
+                    id: `ai-rel-${node1.id}-${node2.id}`,
+                    sourceId: node1.id,
+                    targetId: node2.id,
+                    sourceType: node1.type as any,
+                    targetType: node2.type as any,
+                    relationType: (result.relationshipType as RelationType) || RelationType.REINFORCES,
+                    strength: result.strength,
+                    confidence: 75, // AI-detected, moderate confidence
+                    explanation: result.explanation,
+                    auto_detected: true
+                });
+            }
+        });
+    } catch (error) {
+        console.error('AI relationship enhancement failed:', error);
+    }
+
+    return {
+        ...graph,
+        relationships: newRelationships
+    };
+}
+
+
+/**
  * Calculate team health metrics
  */
 export interface TeamHealthMetrics {

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import ReactFlow, {
     Node,
     Edge,
@@ -11,7 +11,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useWizard } from '../core/store';
-import { buildOntologyGraph, RelationType } from '../core/ontology';
+import { buildOntologyGraph, enhanceWithAIRelationships, RelationType } from '../core/ontology';
 import dagre from 'dagre';
 
 const LAYER_COLORS = {
@@ -52,7 +52,43 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
 
 export function SemanticRelationshipGraph({ className }: { className?: string }) {
     const { state } = useWizard();
-    const graph = buildOntologyGraph(state);
+    const baseGraph = buildOntologyGraph(state);
+    const [enhancedGraph, setEnhancedGraph] = useState(baseGraph);
+    const [isEnhancing, setIsEnhancing] = useState(false);
+
+    // Automatically enhance graph with AI when it changes
+    useEffect(() => {
+        let cancelled = false;
+
+        async function enhance() {
+            // Only enhance if we have enough nodes and haven't enhanced this exact state yet
+            if (baseGraph.nodes.length >= 2 && !isEnhancing) {
+                setIsEnhancing(true);
+                try {
+                    const enhanced = await enhanceWithAIRelationships(baseGraph);
+                    if (!cancelled) {
+                        setEnhancedGraph(enhanced);
+                    }
+                } catch (error) {
+                    console.error('Failed to enhance graph:', error);
+                } finally {
+                    if (!cancelled) {
+                        setIsEnhancing(false);
+                    }
+                }
+            } else {
+                setEnhancedGraph(baseGraph);
+            }
+        }
+
+        enhance();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [JSON.stringify(baseGraph.nodes.map(n => n.id))]); // Re-enhance when nodes change
+
+    const graph = enhancedGraph;
 
     const { initialNodes, initialEdges } = useMemo(() => {
         const nodes: Node[] = graph.nodes.map((node) => {
