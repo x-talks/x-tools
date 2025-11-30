@@ -50,7 +50,7 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
     return { nodes: layoutedNodes, edges };
 };
 
-export function SemanticRelationshipGraph() {
+export function SemanticRelationshipGraph({ className }: { className?: string }) {
     const { state } = useWizard();
     const graph = buildOntologyGraph(state);
 
@@ -150,7 +150,7 @@ export function SemanticRelationshipGraph() {
     }, []);
 
     return (
-        <div className="w-full h-[600px] border-2 border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+        <div className={`w-full h-[600px] border-2 border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden ${className || ''}`}>
             <ReactFlow
                 nodes={nodes}
                 edges={edges}

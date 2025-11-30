@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { cn } from '../../utils/cn';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronUp, Network } from 'lucide-react';
+import { OntologyView } from '../OntologyView';
 
 interface SideNoteContent {
     Formula?: string | string[];
@@ -22,7 +23,6 @@ export function SideNote({ content, className, title = "Explanation" }: SideNote
     const formulas = Array.isArray(content.Formula) ? content.Formula : (content.Formula ? [content.Formula] : []);
     const what = content.Description?.What || content.What;
     const why = content.Description?.Why || content.Why;
-    const examples = content.Examples || [];
     const bestPractice = content.BestPractice || content.BestPractices;
 
     const [isExpanded, setIsExpanded] = useState(() => {
@@ -57,38 +57,17 @@ export function SideNote({ content, className, title = "Explanation" }: SideNote
                 </div>
             )}
 
-            {/* Expandable Content: Best Practice & Examples */}
+            {/* Always Visible: Best Practice */}
+            {bestPractice && (
+                <div className="text-sm text-blue-800">
+                    <strong>Best Practice:</strong> {bestPractice}
+                </div>
+            )}
+
+            {/* Expandable Content: Ontology View */}
             {isExpanded && (
                 <div className="space-y-3 pt-2 border-t border-blue-200/50 mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                    {/* Best Practice */}
-                    {bestPractice && (
-                        <div className="text-sm text-blue-800">
-                            <strong>Best Practice:</strong> {bestPractice}
-                        </div>
-                    )}
-
-                    {/* Examples */}
-                    {examples.length > 0 && (
-                        <div className="text-sm text-blue-700 italic">
-                            <strong>Examples:</strong>
-                            <ul className="list-disc list-inside mt-1">
-                                {examples.map((ex, i) => {
-                                    if (typeof ex === 'string') {
-                                        return <li key={i}>"{ex}"</li>;
-                                    } else {
-                                        return (
-                                            <li key={i} className="mb-2 not-italic">
-                                                <span className="font-semibold">"{ex.Objective}"</span>
-                                                <ul className="list-[circle] list-inside ml-4 mt-1 text-xs text-blue-600">
-                                                    {ex.KeyResults.map((kr, j) => <li key={j}>{kr}</li>)}
-                                                </ul>
-                                            </li>
-                                        );
-                                    }
-                                })}
-                            </ul>
-                        </div>
-                    )}
+                    <OntologyView />
                 </div>
             )}
 
@@ -97,9 +76,9 @@ export function SideNote({ content, className, title = "Explanation" }: SideNote
                 className="flex items-center text-xs font-medium text-blue-600 hover:text-blue-800 mt-2 focus:outline-none w-full justify-center py-1 bg-blue-100/30 rounded hover:bg-blue-100/50 transition-colors"
             >
                 {isExpanded ? (
-                    <>Show Less <ChevronUp className="ml-1 h-3 w-3" /></>
+                    <>Hide Ontology <ChevronUp className="ml-1 h-3 w-3" /></>
                 ) : (
-                    <>Show Examples & Best Practices <ChevronDown className="ml-1 h-3 w-3" /></>
+                    <>Ontology View <Network className="ml-1 h-3 w-3" /></>
                 )}
             </button>
         </div>

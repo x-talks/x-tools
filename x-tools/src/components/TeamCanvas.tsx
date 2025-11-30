@@ -6,7 +6,7 @@ export function TeamCanvas() {
     const { team, vision, mission, strategy, values, principles, behaviors, goals, roles, people } = state;
 
     return (
-        <div className="w-full max-w-6xl mx-auto space-y-8 p-8 bg-white min-h-screen print:p-0">
+        <div className="w-full max-w-7xl mx-auto space-y-8 p-8 bg-white min-h-screen print:p-0 pb-32">
             <div className="flex justify-between items-end border-b-2 border-slate-900 pb-4">
                 <div>
                     <h1 className="text-4xl font-bold text-slate-900">Team Canvas</h1>

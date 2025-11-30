@@ -60,6 +60,8 @@ export interface Principle {
     id: string;
     label: string;
     derivedFrom: string[]; // valueIds or behaviorIds
+    explanation?: string;
+    ruleId?: string;
 }
 
 export interface AuditLogEntry {
