@@ -1,33 +1,16 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useWizard } from '../../core/store';
-import { getSavedTeams, saveTeam, loadTeam, deleteTeam } from '../../core/storage';
+import { getSavedTeams, saveTeam, loadTeam, deleteTeam, validateTeamCompleteness } from '../../core/storage';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Download, Save, Upload, Trash2, Search as SearchIcon } from 'lucide-react';
-import { SavedTeam, WizardState } from '../../core/types';
+import { SavedTeam } from '../../core/types';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useAutoSave } from '../../hooks/useAutoSave';
 
 interface Step8Props {
     // onViewHome?: () => void; // Removed as per instruction
-}
-
-function validateTeamCompleteness(state: WizardState) {
-    const missing: string[] = [];
-    if (!state.team?.teamPurpose) missing.push('Purpose');
-    if (!state.vision) missing.push('Vision');
-    if (!state.mission) missing.push('Mission');
-    if (!state.strategy) missing.push('Strategy');
-    if (state.values.length === 0) missing.push('Values');
-    if (state.principles.length === 0) missing.push('Principles');
-    if (state.behaviors.length === 0) missing.push('Behaviors');
-    if (state.goals.length === 0) missing.push('Goals');
-
-    return {
-        isComplete: missing.length === 0,
-        missing
-    };
 }
 
 export function Step10_Save({ }: Step8Props) {
@@ -41,8 +24,8 @@ export function Step10_Save({ }: Step8Props) {
 
     const { isSaving, lastSaved: autoSaveTime } = useAutoSave(state, true);
 
-    const validation = validateTeamCompleteness(state);
-    const { isComplete, missing } = validation;
+
+
 
     useEffect(() => {
         getSavedTeams().then(teams => {
@@ -170,14 +153,6 @@ export function Step10_Save({ }: Step8Props) {
                 {saveError && (
                     <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
                         {saveError}
-                    </div>
-                )}
-
-                {/* Completeness Warning */}
-                {!isComplete && (
-                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-800 flex items-start">
-                        <span className="font-semibold mr-1">Team is incomplete.</span>
-                        <span>Missing: {missing.join(', ')}</span>
                     </div>
                 )}
 

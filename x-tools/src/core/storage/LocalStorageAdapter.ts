@@ -1,6 +1,6 @@
 import { WizardState, SavedTeam } from '../types';
 import { StorageAdapter } from './types';
-import { validateTeamCompleteness } from './validation';
+
 
 const STORAGE_KEY = 'teamDataArray';
 const INIT_FLAG_KEY = 'teamup-initialized';
@@ -18,12 +18,11 @@ export class LocalStorageAdapter implements StorageAdapter {
     }
 
     async saveTeam(state: WizardState): Promise<{ success: boolean; savedTeam?: SavedTeam; error?: string }> {
-        // Validate completeness
-        const validation = validateTeamCompleteness(state);
-        if (!validation.isComplete) {
+        // Relaxed validation for saving: only require name
+        if (!state.team?.teamName) {
             return {
                 success: false,
-                error: `Team is incomplete. Missing: ${validation.missing.join(', ')}`
+                error: 'Team name is required to save.'
             };
         }
 

@@ -64,13 +64,7 @@ export function SideNote({ content, className, title = "Explanation" }: SideNote
                 </div>
             )}
 
-            {/* Expandable Content: Ontology View */}
-            {isExpanded && (
-                <div className="space-y-3 pt-2 border-t border-blue-200/50 mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <OntologyView />
-                </div>
-            )}
-
+            {/* Toggle Button - Always visible at the same position */}
             <button
                 onClick={toggleExpand}
                 className="flex items-center text-xs font-medium text-blue-600 hover:text-blue-800 mt-2 focus:outline-none w-full justify-center py-1 bg-blue-100/30 rounded hover:bg-blue-100/50 transition-colors"
@@ -81,6 +75,13 @@ export function SideNote({ content, className, title = "Explanation" }: SideNote
                     <>Ontology View <Network className="ml-1 h-3 w-3" /></>
                 )}
             </button>
+
+            {/* Expandable Content: Ontology View */}
+            {isExpanded && (
+                <div className="space-y-3 pt-2 border-t border-blue-200/50 mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <OntologyView />
+                </div>
+            )}
         </div>
     );
 }
