@@ -87,9 +87,9 @@ export function WizardStepLayout<T>({
                 <SideNote content={sideNoteContent} />
 
                 {/* Input Area */}
-                <div className="space-y-2">
+                <div className="space-y-3">
                     {/* Action Buttons Row (Above Input) */}
-                    <div className="flex justify-end gap-2 mb-1">
+                    <div className="flex justify-end gap-2">
                         <Button
                             variant="outline"
                             size="sm"
@@ -118,6 +118,13 @@ export function WizardStepLayout<T>({
                         </Button>
                     </div>
 
+                    {/* Example - directly below input */}
+                    {example && (
+                        <p className="text-xs text-slate-400 italic -mt-1">
+                            Example: "{example}"
+                        </p>
+                    )}
+
                     <div className="flex justify-end">
                         <Button
                             variant="ghost"
@@ -130,13 +137,6 @@ export function WizardStepLayout<T>({
                             <Save className="h-4 w-4 mr-2" /> Add to Library
                         </Button>
                     </div>
-
-                    {/* Example */}
-                    {example && (
-                        <p className="text-xs text-slate-400 italic mt-1">
-                            Example: "{example}"
-                        </p>
-                    )}
                 </div>
 
                 {/* Selected Items (Drag & Drop) */}

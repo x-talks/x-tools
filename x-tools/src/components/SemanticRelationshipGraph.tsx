@@ -10,6 +10,8 @@ import ReactFlow, {
     MarkerType,
     addEdge,
     Connection,
+    ConnectionMode,
+    ConnectionLineType,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useWizard } from '../core/store';
@@ -54,7 +56,7 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
 };
 
 export function SemanticRelationshipGraph({ className }: { className?: string }) {
-    const { state } = useWizard();
+    const { state, dispatch } = useWizard();
     const baseGraph = buildOntologyGraph(state);
     const [enhancedGraph, setEnhancedGraph] = useState(baseGraph);
     const [isEnhancing, setIsEnhancing] = useState(false);
@@ -212,7 +214,6 @@ export function SemanticRelationshipGraph({ className }: { className?: string })
         const targetNode = graph.nodes.find(n => n.id === params.target);
 
         // Save the manual relationship to state
-        const { dispatch } = useWizard();
         const existingRelationships = state.relationships || [];
         const newRelationship = {
             id: `manual-rel-${Date.now()}`,
@@ -231,14 +232,14 @@ export function SemanticRelationshipGraph({ className }: { className?: string })
             type: 'SET_RELATIONSHIPS',
             payload: [...existingRelationships, newRelationship]
         });
-    }, [setEdges, graph.nodes, state.relationships]);
+    }, [setEdges, graph.nodes, state.relationships, dispatch]);
 
     const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
         console.log('Node clicked:', node);
         // Future: Show node details panel
     }, []);
 
-    const { dispatch } = useWizard();
+
 
     const handleSaveRelationships = () => {
         const newRelationships = graph.relationships.filter(r => r.auto_detected);
@@ -291,6 +292,9 @@ export function SemanticRelationshipGraph({ className }: { className?: string })
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 onNodeClick={onNodeClick}
+                connectionMode={ConnectionMode.Loose}
+                connectionLineType={ConnectionLineType.SmoothStep}
+                connectionLineStyle={{ stroke: '#8b5cf6', strokeWidth: 2 }}
                 fitView
                 attributionPosition="bottom-left"
             >

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useWizard } from '../../core/store';
 import { BEHAVIOR_TEMPLATES, WIZARD_CONTENT } from '../../core/rules';
 import { WizardStepLayout } from './WizardStepLayout';
+import { SemanticTags } from '../SemanticTags';
 import { X } from 'lucide-react';
 import type { Behavior } from '../../core/types';
 import AI from '../../core/ai';
@@ -111,10 +112,13 @@ export function Step6_Behaviors() {
             onAISuggest={handleAISuggest}
             onMagicFill={handleMagicFill}
             renderItem={(b) => (
-                <div className="flex items-center gap-2 bg-slate-50 p-3 rounded-md group w-full">
-                    <span className="flex-1 text-sm">{b.label}</span>
-                    <button onClick={() => handleRemove(b.id)} className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700">
-                        <X className="h-4 w-4" />
+                <div className="flex items-start gap-2 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
+                    <div className="flex-1">
+                        <div className="font-medium text-slate-900 dark:text-slate-100">{b.label}</div>
+                        <SemanticTags text={b.label + ' ' + (b.explanation || '')} maxTags={2} />
+                    </div>
+                    <button onClick={() => handleRemove(b.id)} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <X className="h-4 w-4 text-slate-400" />
                     </button>
                 </div>
             )}

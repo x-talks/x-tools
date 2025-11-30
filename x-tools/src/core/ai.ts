@@ -172,14 +172,23 @@ Determine if there's a meaningful relationship. Return ONLY a JSON object:
     }
 }
 
-export async function suggestPurpose(teamName?: string, industry?: string, userInput?: string): Promise<string> {
+export interface SuggestionOption {
+    text: string;
+    breakdown: Record<string, string>; // Formula part -> Content
+}
+
+export interface AIResponse {
+    suggestions: SuggestionOption[];
+}
+
+export async function suggestPurpose(teamName?: string, industry?: string, userInput?: string): Promise<AIResponse> {
     if (!isGroqConfigured()) {
         return ruleBased_suggestPurpose(teamName, industry);
     }
 
     try {
-        let prompt = '';
         const formula = WIZARD_CONTENT.Purpose.Formula;
+        let prompt = '';
 
         if (userInput && userInput.trim().length > 5) {
             prompt = `Refine this Purpose statement to strictly follow the formula: "${formula}".
@@ -187,36 +196,55 @@ export async function suggestPurpose(teamName?: string, industry?: string, userI
 User Input: "${userInput}"
 
 Instructions:
-1. Identify the parts in the input that correspond to [What We Do], [For Whom], and [Ultimate Impact].
-2. Reassemble them into a single, clear sentence following the formula.
-3. Fix grammar and flow, but keep the user's core meaning.
-4. Return ONLY the final sentence.`;
+1. Generate 3 DIFFERENT options (varying in tone/style) that strictly follow the formula.
+2. For each option, identify which parts of the user's input correspond to the formula slots: [What We Do], [For Whom], [Ultimate Impact].
+3. Return ONLY a JSON object with this structure:
+{
+  "suggestions": [
+    {
+      "text": "Full sentence here...",
+      "breakdown": {
+        "[What We Do]": "extracted part...",
+        "[For Whom]": "extracted part...",
+        "[Ultimate Impact]": "extracted part..."
+      }
+    }
+  ]
+}`;
         } else {
-            prompt = `Generate a Purpose statement for a team named "${teamName || 'Team'}" in the "${industry || 'Technology'}" industry.
+            prompt = `Generate 3 Purpose statements for a team named "${teamName || 'Team'}" in the "${industry || 'Technology'}" industry.
             
 Formula: "${formula}"
 
 Instructions:
-1. Create a statement that fits the formula.
-2. Make it inspiring but grounded.
-3. Return ONLY the final sentence.`;
+1. Create 3 different statements fitting the formula.
+2. Return ONLY a JSON object with the structure:
+{
+  "suggestions": [
+    {
+      "text": "Full sentence...",
+      "breakdown": { "[What We Do]": "...", "[For Whom]": "...", "[Ultimate Impact]": "..." }
+    }
+  ]
+}`;
         }
 
-        return await callGroqAPI(prompt, 'You are an expert in organizational design.');
+        const result = await callGroqAPI(prompt, 'You are an expert in organizational design. Return strictly valid JSON.');
+        return JSON.parse(result);
     } catch (error) {
         console.error('AI suggestion failed:', error);
         return ruleBased_suggestPurpose(teamName, industry);
     }
 }
 
-export async function suggestVision(purpose: string, userInput?: string): Promise<string> {
+export async function suggestVision(purpose: string, userInput?: string): Promise<AIResponse> {
     if (!isGroqConfigured()) {
         return ruleBased_suggestVision(purpose);
     }
 
     try {
-        let prompt = '';
         const formula = WIZARD_CONTENT.Vision.Formula;
+        let prompt = '';
 
         if (userInput && userInput.trim().length > 5) {
             prompt = `Refine this Vision statement to strictly follow the formula: "${formula}".
@@ -225,34 +253,43 @@ User Input: "${userInput}"
 Context (Purpose): "${purpose}"
 
 Instructions:
-1. Identify [A Future State], [For Whom], and [Transformation/Impact].
-2. Reassemble into a single, aspirational sentence.
-3. Return ONLY the final sentence.`;
+1. Generate 3 DIFFERENT options.
+2. Identify [A Future State], [For Whom], [Transformation/Impact].
+3. Return ONLY a JSON object:
+{
+  "suggestions": [
+    {
+      "text": "Full sentence...",
+      "breakdown": { "[A Future State]": "...", "[For Whom]": "...", "[Transformation/Impact]": "..." }
+    }
+  ]
+}`;
         } else {
-            prompt = `Generate a Vision statement based on this Purpose: "${purpose}"
+            prompt = `Generate 3 Vision statements based on this Purpose: "${purpose}"
             
 Formula: "${formula}"
 
 Instructions:
-1. Create a future-looking statement fitting the formula.
-2. Return ONLY the final sentence.`;
+1. Create 3 different statements.
+2. Return ONLY a JSON object with suggestions array.`;
         }
 
-        return await callGroqAPI(prompt, 'You are a strategic visionary.');
+        const result = await callGroqAPI(prompt, 'You are a strategic visionary. Return strictly valid JSON.');
+        return JSON.parse(result);
     } catch (error) {
         console.error('AI suggestion failed:', error);
         return ruleBased_suggestVision(purpose);
     }
 }
 
-export async function suggestMission(vision: string, userInput?: string): Promise<string> {
+export async function suggestMission(vision: string, userInput?: string): Promise<AIResponse> {
     if (!isGroqConfigured()) {
         return ruleBased_suggestMission(vision);
     }
 
     try {
-        let prompt = '';
         const formula = WIZARD_CONTENT.Mission.Formula;
+        let prompt = '';
 
         if (userInput && userInput.trim().length > 5) {
             prompt = `Refine this Mission statement to strictly follow the formula: "${formula}".
@@ -261,34 +298,43 @@ User Input: "${userInput}"
 Context (Vision): "${vision}"
 
 Instructions:
-1. Identify [What We Do], [What We Deliver/How], and [Target/Problem].
-2. Reassemble into a single, operational sentence.
-3. Return ONLY the final sentence.`;
+1. Generate 3 DIFFERENT options.
+2. Identify [What We Do], [What We Deliver/How], [Target/Problem].
+3. Return ONLY a JSON object:
+{
+  "suggestions": [
+    {
+      "text": "Full sentence...",
+      "breakdown": { "[What We Do]": "...", "[What We Deliver/How]": "...", "[Target/Problem]": "..." }
+    }
+  ]
+}`;
         } else {
-            prompt = `Generate a Mission statement based on this Vision: "${vision}"
+            prompt = `Generate 3 Mission statements based on this Vision: "${vision}"
             
 Formula: "${formula}"
 
 Instructions:
-1. Create an actionable statement fitting the formula.
-2. Return ONLY the final sentence.`;
+1. Create 3 different statements.
+2. Return ONLY a JSON object with suggestions array.`;
         }
 
-        return await callGroqAPI(prompt, 'You are an operations strategist.');
+        const result = await callGroqAPI(prompt, 'You are an operations strategist. Return strictly valid JSON.');
+        return JSON.parse(result);
     } catch (error) {
         console.error('AI suggestion failed:', error);
         return ruleBased_suggestMission(vision);
     }
 }
 
-export async function suggestStrategy(mission: string, userInput?: string): Promise<string> {
+export async function suggestStrategy(mission: string, userInput?: string): Promise<AIResponse> {
     if (!isGroqConfigured()) {
         return ruleBased_suggestStrategy(mission);
     }
 
     try {
-        let prompt = '';
         const formula = WIZARD_CONTENT.Strategy.Formula;
+        let prompt = '';
 
         if (userInput && userInput.trim().length > 5) {
             prompt = `Refine this Strategy statement to strictly follow the formula: "${formula}".
@@ -297,20 +343,29 @@ User Input: "${userInput}"
 Context (Mission): "${mission}"
 
 Instructions:
-1. Identify [Our Differentiation], [Through What Approach], and [Market/Problem].
-2. Reassemble into a single, strategic sentence.
-3. Return ONLY the final sentence.`;
+1. Generate 3 DIFFERENT options.
+2. Identify [Our Differentiation], [Through What Approach], [Market/Problem].
+3. Return ONLY a JSON object:
+{
+  "suggestions": [
+    {
+      "text": "Full sentence...",
+      "breakdown": { "[Our Differentiation]": "...", "[Through What Approach]": "...", "[Market/Problem]": "..." }
+    }
+  ]
+}`;
         } else {
-            prompt = `Generate a Strategy statement based on this Mission: "${mission}"
+            prompt = `Generate 3 Strategy statements based on this Mission: "${mission}"
             
 Formula: "${formula}"
 
 Instructions:
-1. Create a competitive strategy fitting the formula.
-2. Return ONLY the final sentence.`;
+1. Create 3 different statements.
+2. Return ONLY a JSON object with suggestions array.`;
         }
 
-        return await callGroqAPI(prompt, 'You are a business strategist.');
+        const result = await callGroqAPI(prompt, 'You are a business strategist. Return strictly valid JSON.');
+        return JSON.parse(result);
     } catch (error) {
         console.error('AI suggestion failed:', error);
         return ruleBased_suggestStrategy(mission);
@@ -454,40 +509,77 @@ function ruleBased_analyzeText(text: string): Partial<SemanticAnalysis> {
     return { sentiment, complexity, specificity };
 }
 
-function ruleBased_suggestPurpose(_teamName?: string, _industry?: string): string {
+function ruleBased_suggestPurpose(_teamName?: string, _industry?: string): AIResponse {
     const templates = [
         "To empower teams to deliver exceptional value through collaboration and innovation",
         "To build sustainable solutions that transform how people work together",
         "To create an environment where every team member can thrive and contribute meaningfully"
     ];
-    return templates[Math.floor(Math.random() * templates.length)];
+
+    return {
+        suggestions: templates.map(t => ({
+            text: t,
+            breakdown: {
+                "[What We Do]": "empower teams",
+                "[For Whom]": "teams",
+                "[Ultimate Impact]": "deliver exceptional value"
+            }
+        }))
+    };
 }
 
-function ruleBased_suggestVision(_purpose?: string): string {
+function ruleBased_suggestVision(_purpose?: string): AIResponse {
     const templates = [
         "A future where teams operate with complete autonomy and alignment",
         "An organization recognized for innovation, quality, and sustainable practices",
         "A workplace where excellence and continuous improvement are the norm"
     ];
-    return templates[Math.floor(Math.random() * templates.length)];
+    return {
+        suggestions: templates.map(t => ({
+            text: t,
+            breakdown: {
+                "[A Future State]": "A future where teams operate",
+                "[For Whom]": "teams",
+                "[Transformation/Impact]": "complete autonomy and alignment"
+            }
+        }))
+    };
 }
 
-function ruleBased_suggestMission(_vision?: string): string {
+function ruleBased_suggestMission(_vision?: string): AIResponse {
     const templates = [
         "Deliver high-quality solutions through agile practices and continuous learning",
         "Build products that solve real customer problems with speed and reliability",
         "Create value by combining technical excellence with user-centric design"
     ];
-    return templates[Math.floor(Math.random() * templates.length)];
+    return {
+        suggestions: templates.map(t => ({
+            text: t,
+            breakdown: {
+                "[What We Do]": "Deliver high-quality solutions",
+                "[What We Deliver/How]": "agile practices",
+                "[Target/Problem]": "continuous learning"
+            }
+        }))
+    };
 }
 
-function ruleBased_suggestStrategy(_mission?: string): string {
+function ruleBased_suggestStrategy(_mission?: string): AIResponse {
     const templates = [
         "Compete through rapid iteration, customer feedback loops, and technical excellence",
         "Win by combining AI-powered automation with human-centered design principles",
         "Lead the market by delivering exceptional quality at sustainable velocity"
     ];
-    return templates[Math.floor(Math.random() * templates.length)];
+    return {
+        suggestions: templates.map(t => ({
+            text: t,
+            breakdown: {
+                "[Our Differentiation]": "rapid iteration",
+                "[Through What Approach]": "customer feedback loops",
+                "[Market/Problem]": "technical excellence"
+            }
+        }))
+    };
 }
 
 function ruleBased_suggestValues(): string[] {
