@@ -38,9 +38,19 @@ export function AISuggestionModal({ isOpen, onClose, suggestions, onSelect, titl
                                 onClick={() => onSelect(option.text)}
                             >
                                 <div className="flex justify-between items-start gap-4 mb-3">
-                                    <p className="text-slate-900 dark:text-slate-100 font-medium text-lg leading-relaxed">
-                                        "{option.text}"
-                                    </p>
+                                    <div className="flex flex-col gap-1">
+                                        {option.label && (
+                                            <span className={`text-xs font-bold uppercase tracking-wider w-fit px-2 py-0.5 rounded ${option.label.includes('Best-of')
+                                                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                                                    : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                                                }`}>
+                                                {option.label}
+                                            </span>
+                                        )}
+                                        <p className="text-slate-900 dark:text-slate-100 font-medium text-lg leading-relaxed">
+                                            "{option.text}"
+                                        </p>
+                                    </div>
                                     <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button className="bg-purple-600 text-white px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1.5 shadow-sm hover:bg-purple-700">
                                             <Check className="h-4 w-4" /> Select
