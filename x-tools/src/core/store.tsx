@@ -29,6 +29,7 @@ type Action =
     | { type: 'SET_ROLES'; payload: Role[] }
     | { type: 'SET_PEOPLE'; payload: Person[] }
     | { type: 'SET_RELATIONSHIPS'; payload: SemanticRelationship[] }
+    | { type: 'SET_GRAPH_LAYOUT'; payload: any }
     | { type: 'LOAD_STATE'; payload: WizardState }
     | { type: 'NEXT_STEP' }
     | { type: 'PREV_STEP' }
@@ -73,6 +74,8 @@ export function wizardReducer(state: WizardState, action: Action): WizardState {
         case 'SET_RELATIONSHIPS':
             logEntry = { user: 'current-user', action: 'edited', ts: now, details: 'Relationships updated' };
             return { ...state, relationships: action.payload, auditLog: [...state.auditLog, logEntry] };
+        case 'SET_GRAPH_LAYOUT':
+            return { ...state, graphLayout: action.payload };
         case 'LOAD_STATE':
             return { ...action.payload, auditLog: [...action.payload.auditLog, { user: 'system', action: 'edited', ts: now, details: 'Team loaded from storage' }] };
         case 'NEXT_STEP':

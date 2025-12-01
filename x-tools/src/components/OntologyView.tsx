@@ -1,5 +1,5 @@
 import { useWizard } from '../core/store';
-import { SemanticRelationshipGraph } from './SemanticRelationshipGraph';
+import { InteractiveGraph } from './graph/InteractiveGraph';
 import { Network } from 'lucide-react';
 
 export function OntologyView() {
@@ -26,7 +26,7 @@ export function OntologyView() {
                 <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">Ontology View</h3>
                 <span className="text-xs text-slate-500">Live Semantic Graph</span>
             </div>
-            <SemanticRelationshipGraph className="h-[400px]" />
+            <InteractiveGraph className="h-[400px]" />
         </div>
     );
 }

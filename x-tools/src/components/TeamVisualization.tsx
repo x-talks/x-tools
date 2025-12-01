@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useWizard } from '../core/store';
 import { ViewToggle } from './ViewToggle';
 import { TeamCanvas } from './TeamCanvas';
-import { SemanticRelationshipGraph } from './SemanticRelationshipGraph';
+import { InteractiveGraph } from './graph/InteractiveGraph';
 import { TeamHealthDashboard } from './TeamHealthDashboard';
 import { ConflictWarningBanner } from './ConflictWarningBanner';
 import { Download, Printer } from 'lucide-react';
@@ -61,7 +61,7 @@ export function TeamVisualization() {
 
             {/* Main Visualization */}
             <div ref={canvasRef}>
-                {viewMode === 'canvas' ? <TeamCanvas /> : <SemanticRelationshipGraph />}
+                {viewMode === 'canvas' ? <TeamCanvas /> : <InteractiveGraph />}
             </div>
         </div>
     );

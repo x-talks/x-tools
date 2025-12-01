@@ -107,4 +107,5 @@ export interface WizardState {
     currentStep: number;
     strategy?: Strategy;
     relationships?: SemanticRelationship[];
+    graphLayout?: any; // Stores positions and visual state for the graph
 }
