@@ -38,14 +38,21 @@ export function getGroqApiKey(): string | null {
 }
 
 export function isGroqConfigured(): boolean {
-    return !!getGroqApiKey();
+    const hasKey = !!getGroqApiKey();
+    console.log(`[AI Debug] Checking Groq Configuration: ${hasKey ? 'API Key Present' : 'No API Key Found'}`);
+    return hasKey;
 }
 
 export async function callGroqAPI(prompt: string, systemPrompt?: string): Promise<string> {
     const apiKey = getGroqApiKey();
     if (!apiKey) {
+        console.error('[AI Debug] Attempted to call Groq API without API Key');
         throw new Error('Groq API key not configured');
     }
+
+    console.log('[AI Debug] Starting Groq API Call...');
+    console.log('[AI Debug] System Prompt:', systemPrompt);
+    console.log('[AI Debug] User Prompt (first 100 chars):', prompt.substring(0, 100) + '...');
 
     const response = await fetch(GROQ_API_URL, {
         method: 'POST',
@@ -60,15 +67,17 @@ export async function callGroqAPI(prompt: string, systemPrompt?: string): Promis
                 { role: 'user', content: prompt }
             ],
             temperature: 0.7,
-            max_tokens: 500
+            max_tokens: 1500 // Increased token limit for larger JSON responses
         })
     });
 
     if (!response.ok) {
+        console.error(`[AI Debug] Groq API Error: ${response.status} ${response.statusText}`);
         throw new Error(`Groq API error: ${response.statusText}`);
     }
 
     const data = await response.json();
+    console.log('[AI Debug] Groq API Call Successful');
     return data.choices[0]?.message?.content || '';
 }
 
@@ -194,6 +203,7 @@ export async function suggestWizardContent(
     context?: string
 ): Promise<AIResponse> {
     if (!isGroqConfigured()) {
+        console.log('[AI Debug] Groq not configured. Using Rule-Based Fallback for:', cardName);
         // Fallback to rule-based if no API key
         switch (cardName) {
             case 'Purpose': return ruleBased_suggestPurpose();
@@ -284,7 +294,8 @@ ${context ? `Context: ${context}` : ''}`;
             }))
         };
     } catch (error) {
-        console.error('AI suggestion failed:', error);
+        console.error('[AI Debug] AI suggestion failed. Error details:', error);
+        console.log('[AI Debug] Switching to Rule-Based Fallback for:', cardName);
         // Fallback
         switch (cardName) {
             case 'Purpose': return ruleBased_suggestPurpose();
