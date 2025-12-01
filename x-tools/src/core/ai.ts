@@ -506,76 +506,124 @@ function ruleBased_analyzeText(text: string): Partial<SemanticAnalysis> {
 }
 
 function ruleBased_suggestPurpose(_teamName?: string, _industry?: string): AIResponse {
-    const templates = [
-        "To empower teams to deliver exceptional value through collaboration and innovation",
-        "To build sustainable solutions that transform how people work together",
-        "To create an environment where every team member can thrive and contribute meaningfully"
-    ];
-
-    return {
-        suggestions: templates.map(t => ({
-            text: t,
+    const suggestions = [
+        {
+            text: "To empower teams to deliver exceptional value through collaboration and innovation",
             breakdown: {
                 "[What We Do]": "empower teams",
                 "[For Whom]": "teams",
                 "[Ultimate Impact]": "deliver exceptional value"
             }
-        }))
-    };
+        },
+        {
+            text: "To build sustainable solutions that transform how people work together",
+            breakdown: {
+                "[What We Do]": "build sustainable solutions",
+                "[For Whom]": "people",
+                "[Ultimate Impact]": "transform how people work together"
+            }
+        },
+        {
+            text: "To create an environment where every team member can thrive and contribute meaningfully",
+            breakdown: {
+                "[What We Do]": "create an environment",
+                "[For Whom]": "every team member",
+                "[Ultimate Impact]": "thrive and contribute meaningfully"
+            }
+        }
+    ];
+
+    return { suggestions };
 }
 
 function ruleBased_suggestVision(_purpose?: string): AIResponse {
-    const templates = [
-        "A future where teams operate with complete autonomy and alignment",
-        "An organization recognized for innovation, quality, and sustainable practices",
-        "A workplace where excellence and continuous improvement are the norm"
-    ];
-    return {
-        suggestions: templates.map(t => ({
-            text: t,
+    const suggestions = [
+        {
+            text: "A future where teams operate with complete autonomy and alignment",
             breakdown: {
                 "[A Future State]": "A future where teams operate",
                 "[For Whom]": "teams",
                 "[Transformation/Impact]": "complete autonomy and alignment"
             }
-        }))
-    };
+        },
+        {
+            text: "An organization recognized for innovation, quality, and sustainable practices",
+            breakdown: {
+                "[A Future State]": "An organization recognized",
+                "[For Whom]": "stakeholders/market",
+                "[Transformation/Impact]": "innovation, quality, and sustainable practices"
+            }
+        },
+        {
+            text: "A workplace where excellence and continuous improvement are the norm",
+            breakdown: {
+                "[A Future State]": "A workplace",
+                "[For Whom]": "employees",
+                "[Transformation/Impact]": "excellence and continuous improvement are the norm"
+            }
+        }
+    ];
+    return { suggestions };
 }
 
 function ruleBased_suggestMission(_vision?: string): AIResponse {
-    const templates = [
-        "Deliver high-quality solutions through agile practices and continuous learning",
-        "Build products that solve real customer problems with speed and reliability",
-        "Create value by combining technical excellence with user-centric design"
-    ];
-    return {
-        suggestions: templates.map(t => ({
-            text: t,
+    const suggestions = [
+        {
+            text: "Deliver high-quality solutions through agile practices and continuous learning",
             breakdown: {
                 "[What We Do]": "Deliver high-quality solutions",
                 "[What We Deliver/How]": "agile practices",
                 "[Target/Problem]": "continuous learning"
             }
-        }))
-    };
+        },
+        {
+            text: "Build products that solve real customer problems with speed and reliability",
+            breakdown: {
+                "[What We Do]": "Build products",
+                "[What We Deliver/How]": "speed and reliability",
+                "[Target/Problem]": "solve real customer problems"
+            }
+        },
+        {
+            text: "Create value by combining technical excellence with user-centric design",
+            breakdown: {
+                "[What We Do]": "Create value",
+                "[What We Deliver/How]": "combining technical excellence",
+                "[Target/Problem]": "user-centric design"
+            }
+        }
+    ];
+    return { suggestions };
 }
 
 function ruleBased_suggestStrategy(_mission?: string): AIResponse {
-    const templates = [
-        "Compete through rapid iteration, customer feedback loops, and technical excellence",
-        "Win by combining AI-powered automation with human-centered design principles",
-        "Lead the market by delivering exceptional quality at sustainable velocity"
-    ];
-    return {
-        suggestions: templates.map(t => ({
-            text: t,
+    const suggestions = [
+        {
+            text: "Compete through rapid iteration, customer feedback loops, and technical excellence",
             breakdown: {
                 "[Our Differentiation]": "rapid iteration",
                 "[Through What Approach]": "customer feedback loops",
                 "[Market/Problem]": "technical excellence"
             }
-        }))
-    };
+        },
+        {
+            text: "Win by combining AI-powered automation with human-centered design principles",
+            breakdown: {
+                "[Our Differentiation]": "AI-powered automation",
+                "[Through What Approach]": "human-centered design principles",
+                "[Market/Problem]": "Win"
+            }
+        },
+        {
+            text: "Lead the market by delivering exceptional quality at sustainable velocity",
+            breakdown: {
+                "[Our Differentiation]": "delivering exceptional quality",
+                "[Through What Approach]": "sustainable velocity",
+                "[Market/Problem]": "Lead the market"
+            }
+        }
+    ];
+    return { suggestions };
 }
 
 function ruleBased_suggestValues(): string[] {
