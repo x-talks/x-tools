@@ -416,7 +416,7 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
 
     // 4. Strategy -> Goal
     if (state.strategy?.text && state.goals.length > 0) {
-        state.goals.forEach((goal, index) => {
+        state.goals.forEach((_goal, index) => {
             const goalId = `goal-${index}`;
             relationships.push({
                 id: `rel-strategy-${goalId}`,
