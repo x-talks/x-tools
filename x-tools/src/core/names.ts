@@ -1,0 +1,23 @@
+export const TEAM_NAMES = [
+    "The Avengers", "Innovators", "Builders", "Titans", "Catalysts", "Voyagers", "Pioneers", "Architects",
+    "Guardians", "Sentinels", "Mavericks", "Trailblazers", "Visionaries", "Strategists", "Executors",
+    "Accelerators", "Navigators", "Explorers", "Creators", "Designers", "Engineers", "Developers",
+    "Scientists", "Researchers", "Analysts", "Optimizers", "Solvers", "Hackers", "Coders",
+    "Makers", "Artisans", "Craftspeople", "Masters", "Wizards", "Sorcerers", "Alchemists",
+    "Rangers", "Scouts", "Pathfinders", "Guides", "Sherpas", "Pilots", "Captains", "Commanders",
+    "Leaders", "Champions", "Heroes", "Legends", "Myths", "Oracles", "Sages", "Gurus",
+    "Ninjas", "Samurai", "Knights", "Paladins", "Warriors", "Gladiators", "Spartans", "Vikings",
+    "Nomads", "Wanderers", "Rovers", "Drifters", "Seekers", "Hunters", "Gatherers", "Farmers",
+    "Planters", "Growers", "Nurturers", "Caretakers", "Healers", "Menders", "Fixers", "Mechanics",
+    "Technicians", "Operators", "Controllers", "Managers", "Directors", "Executives", "Founders",
+    "Partners", "Collaborators", "Allies", "Friends", "Companions", "Mates", "Buddies", "Peers",
+    "Equals", "Brothers", "Sisters", "Siblings", "Family", "Tribe", "Clan", "Guild", "Squad",
+    "Team", "Unit", "Cell", "Pod", "Cluster", "Group", "Band", "Crew", "Force", "League",
+    "Alliance", "Coalition", "Federation", "Union", "Society", "Community", "Network", "Grid",
+    "Matrix", "Nexus", "Hub", "Core", "Center", "Heart", "Soul", "Spirit", "Mind", "Brain",
+    "Intelligence", "Wisdom", "Knowledge", "Truth", "Light", "Energy", "Power", "Strength",
+    "Velocity", "Momentum", "Impact", "Result", "Outcome", "Success", "Victory", "Triumph",
+    "Glory", "Honor", "Respect", "Trust", "Faith", "Hope", "Love", "Joy", "Peace", "Harmony",
+    "Balance", "Order", "Chaos", "Entropy", "Evolution", "Revolution", "Transformation", "Change",
+    "Progress", "Growth", "Development", "Improvement", "Innovation", "Invention", "Discovery"
+];

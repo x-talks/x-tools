@@ -6,6 +6,7 @@ import { Button } from '../ui/Button';
 import { Wand2 } from 'lucide-react';
 import { WIZARD_CONTENT } from '../../core/rules';
 import { LogoGenerator } from '../LogoGenerator';
+import { TEAM_NAMES } from '../../core/names';
 
 export function Step0_CreateTeam() {
     const { state, dispatch } = useWizard();
@@ -24,8 +25,10 @@ export function Step0_CreateTeam() {
         }
     };
 
+    // ...
+
     const handleAutoFill = () => {
-        setTeamName("The " + ["Avengers", "Innovators", "Builders", "Titans"][Math.floor(Math.random() * 4)]);
+        setTeamName("The " + TEAM_NAMES[Math.floor(Math.random() * TEAM_NAMES.length)]);
     };
 
     const handleNext = () => {

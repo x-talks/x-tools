@@ -184,36 +184,67 @@ function generateLetterLogo(size: number, center: number, letter: string, style:
 
 function generateGeometricLogo(size: number, center: number, style: LogoStyle): string {
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
-        <circle cx="${center}" cy="${center}" r="${center - 10}" fill="${style.colors.primary}"/>
+        <defs>
+            <linearGradient id="geomGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:${style.colors.primary};stop-opacity:1" />
+                <stop offset="100%" style="stop-color:${style.colors.secondary};stop-opacity:1" />
+            </linearGradient>
+            <filter id="shadow">
+                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+            </filter>
+        </defs>
+        <circle cx="${center}" cy="${center}" r="${center - 10}" fill="url(#geomGrad)" filter="url(#shadow)"/>
         <polygon points="${center},40 ${center + 50},${center} ${center},${size - 40} ${center - 50},${center}" 
-                 fill="${style.colors.secondary}" opacity="0.8"/>
+                 fill="white" opacity="0.2"/>
+        <circle cx="${center}" cy="${center}" r="${center - 40}" fill="none" stroke="white" stroke-width="3" opacity="0.4"/>
     </svg>`;
 }
 
 function generateIconLogo(size: number, style: LogoStyle): string {
-    // Simple network/connection icon
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
-        <rect x="0" y="0" width="${size}" height="${size}" rx="30" fill="${style.colors.primary}"/>
-        <circle cx="60" cy="60" r="15" fill="white" opacity="0.9"/>
-        <circle cx="140" cy="60" r="15" fill="white" opacity="0.9"/>
-        <circle cx="100" cy="140" r="15" fill="white" opacity="0.9"/>
-        <line x1="60" y1="60" x2="140" y2="60" stroke="white" stroke-width="3" opacity="0.6"/>
-        <line x1="60" y1="60" x2="100" y2="140" stroke="white" stroke-width="3" opacity="0.6"/>
-        <line x1="140" y1="60" x2="100" y2="140" stroke="white" stroke-width="3" opacity="0.6"/>
+        <defs>
+            <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:${style.colors.primary};stop-opacity:1" />
+                <stop offset="100%" style="stop-color:${style.colors.secondary};stop-opacity:1" />
+            </linearGradient>
+            <filter id="glow">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+        <rect x="0" y="0" width="${size}" height="${size}" rx="40" fill="url(#iconGrad)"/>
+        <circle cx="60" cy="60" r="18" fill="white" opacity="0.95" filter="url(#glow)"/>
+        <circle cx="140" cy="60" r="18" fill="white" opacity="0.95" filter="url(#glow)"/>
+        <circle cx="100" cy="140" r="18" fill="white" opacity="0.95" filter="url(#glow)"/>
+        <line x1="60" y1="60" x2="140" y2="60" stroke="white" stroke-width="4" opacity="0.7"/>
+        <line x1="60" y1="60" x2="100" y2="140" stroke="white" stroke-width="4" opacity="0.7"/>
+        <line x1="140" y1="60" x2="100" y2="140" stroke="white" stroke-width="4" opacity="0.7"/>
     </svg>`;
 }
 
 function generateAbstractLogo(size: number, center: number, style: LogoStyle): string {
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
         <defs>
-            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="abstractGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" style="stop-color:${style.colors.primary};stop-opacity:1" />
-                <stop offset="100%" style="stop-color:${style.colors.secondary};stop-opacity:1" />
+                <stop offset="50%" style="stop-color:${style.colors.secondary};stop-opacity:1" />
+                <stop offset="100%" style="stop-color:${style.colors.primary};stop-opacity:0.8" />
             </linearGradient>
+            <radialGradient id="abstractGrad2">
+                <stop offset="0%" style="stop-color:white;stop-opacity:0.4" />
+                <stop offset="100%" style="stop-color:white;stop-opacity:0" />
+            </radialGradient>
         </defs>
-        <circle cx="${center}" cy="${center}" r="${center - 10}" fill="url(#grad1)"/>
+        <circle cx="${center}" cy="${center}" r="${center - 10}" fill="url(#abstractGrad1)"/>
+        <circle cx="${center}" cy="${center}" r="${center - 10}" fill="url(#abstractGrad2)"/>
         <path d="M 60,60 Q 100,40 140,60 T 140,140 Q 100,160 60,140 T 60,60 Z" 
-              fill="white" opacity="0.3"/>
+              fill="white" opacity="0.25"/>
+        <circle cx="${center}" cy="${center - 20}" r="15" fill="white" opacity="0.3"/>
+        <circle cx="${center + 25}" cy="${center + 15}" r="12" fill="white" opacity="0.25"/>
+        <circle cx="${center - 25}" cy="${center + 15}" r="10" fill="white" opacity="0.2"/>
     </svg>`;
 }
 

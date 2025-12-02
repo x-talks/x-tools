@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Plus, X, Sparkles } from 'lucide-react';
 
 export interface Metadata {
@@ -19,6 +19,12 @@ export function MetadataEditor({ id, description, tags = [], onUpdate, onGenerat
     const [editingDesc, setEditingDesc] = useState(description || '');
     const [editingTags, setEditingTags] = useState(tags);
     const [newTag, setNewTag] = useState('');
+
+    // Sync local state with props when they change (e.g. after AI generation)
+    useEffect(() => {
+        setEditingDesc(description || '');
+        setEditingTags(tags || []);
+    }, [description, tags]);
 
     const handleSave = () => {
         onUpdate({

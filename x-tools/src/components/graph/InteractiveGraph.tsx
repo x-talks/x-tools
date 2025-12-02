@@ -17,6 +17,11 @@ import { buildOntologyGraph } from '../../core/ontology';
 import { convertOntologyToReactFlow } from './GraphUtils';
 import { GraphToolbar } from './GraphToolbar';
 import { Edit2 } from 'lucide-react';
+import { CustomNode } from './CustomNode';
+
+const nodeTypes = {
+    custom: CustomNode,
+};
 
 interface NodeEditData {
     id: string;
@@ -34,6 +39,7 @@ export function InteractiveGraph() {
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedNode, setSelectedNode] = useState<NodeEditData | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [rfInstance, setRfInstance] = useState<any>(null);
 
     // Build ontology and convert to React Flow format
     useEffect(() => {
@@ -71,6 +77,7 @@ export function InteractiveGraph() {
     const onConnect = useCallback((params: Connection) => {
         if (isEditMode) {
             setEdges((eds) => addEdge({ ...params, animated: true }, eds));
+            // TODO: Implement persistence for custom edges
         }
     }, [setEdges, isEditMode]);
 
@@ -90,6 +97,7 @@ export function InteractiveGraph() {
     const handleEdgeClick: EdgeMouseHandler = useCallback((_event, edge) => {
         if (isEditMode && window.confirm('Delete this connection?')) {
             setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+            // TODO: Implement persistence for edge deletion
         }
     }, [isEditMode, setEdges]);
 
@@ -123,7 +131,9 @@ export function InteractiveGraph() {
     };
 
     const handleFitView = () => {
-        console.log('[Graph] Fit view triggered');
+        if (rfInstance) {
+            rfInstance.fitView({ padding: 0.2 });
+        }
     };
 
     if (!isInitialized) {
@@ -174,6 +184,8 @@ export function InteractiveGraph() {
                 onNodeDragStop={handleNodeDragStop}
                 onNodeClick={handleNodeClick}
                 onEdgeClick={handleEdgeClick}
+                onInit={setRfInstance}
+                nodeTypes={nodeTypes}
                 fitView
                 attributionPosition="bottom-left"
                 minZoom={0.1}
@@ -185,7 +197,7 @@ export function InteractiveGraph() {
                 <Controls />
                 <MiniMap
                     nodeColor={(node) => {
-                        const bg = node.style?.background;
+                        const bg = node.data?.color || node.style?.background;
                         return typeof bg === 'string' ? bg : '#e2e8f0';
                     }}
                     maskColor="rgba(0, 0, 0, 0.1)"

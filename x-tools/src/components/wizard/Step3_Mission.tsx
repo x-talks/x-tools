@@ -10,7 +10,7 @@ import { MetadataEditor, Metadata } from '../MetadataEditor';
 export function Step3_Mission() {
     const { state, dispatch } = useWizard();
     const [mission, setMission] = useState(state.mission?.text || '');
-    const { items: libraryItems, addToLibrary } = useLibrary('mission', WIZARD_CONTENT.Mission.Examples);
+    const { items: libraryItems, addToLibrary } = useLibrary('mission', [...WIZARD_CONTENT.Mission.Examples, ...(WIZARD_CONTENT.Mission.Statements || [])]);
     const [isGeneratingAI, setIsGeneratingAI] = useState(false);
     const [aiSuggestions, setAiSuggestions] = useState<SuggestionOption[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);

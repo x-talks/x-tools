@@ -22,7 +22,11 @@ export function Step2_Vision() {
     });
 
     const archetypes = getVisionArchetypes([]);
-    const initialLibrary = useMemo(() => archetypes.map(a => a.description), []);
+    const initialLibrary = useMemo(() => [
+        ...archetypes.map(a => a.description),
+        ...WIZARD_CONTENT.Vision.Examples,
+        ...(WIZARD_CONTENT.Vision.Statements || [])
+    ], []);
     const { items: libraryItems, addToLibrary } = useLibrary('vision', initialLibrary);
 
     // Pre-fill with example if empty

@@ -12,6 +12,7 @@ export const WIZARD_STAGE_COLORS: Record<string, { background: string; color: st
     Principles: { background: '#FF4500', color: '#fff' },
     Behaviors: { background: '#00CED1', color: '#000' },
     // Fallback colors for entity types
+    circle: { background: '#FFD700', color: '#000' },
     purpose: { background: '#FFA500', color: '#000' },
     vision: { background: '#8A2BE2', color: '#fff' },
     mission: { background: '#00BFFF', color: '#fff' },
@@ -29,7 +30,8 @@ export const WIZARD_STAGE_COLORS: Record<string, { background: string; color: st
 export function convertOntologyToReactFlow(ontology: OntologyGraph): { nodes: Node[]; edges: Edge[] } {
     // Create a map to track node positions by type for auto-layout
     const typeYPositions: Record<string, number> = {
-        purpose: 50,
+        circle: 0,
+        purpose: 100,
         vision: 150,
         mission: 250,
         strategy: 350,
@@ -53,25 +55,22 @@ export function convertOntologyToReactFlow(ontology: OntologyGraph): { nodes: No
 
         return {
             id: node.id,
-            type: 'default',
+            type: 'custom',
             data: {
                 label: node.label.length > 50 ? node.label.substring(0, 50) + '...' : node.label,
                 content: node.label,
                 description: node.description || node.text || node.label,
                 tags: node.tags || [],
-                entityType: node.type
+                entityType: node.type,
+                color: styleConfig.background,
+                textColor: styleConfig.color,
+                // @ts-ignore - Accessing custom property
+                logo: node.logo
             },
             position: { x: 100 + xOffset, y: yPos },
             style: {
-                background: styleConfig.background,
-                color: styleConfig.color,
-                border: '2px solid ' + styleConfig.background,
-                borderRadius: '8px',
-                padding: '10px',
-                fontSize: '12px',
-                fontWeight: 500,
-                minWidth: '200px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                // Style is now handled by CustomNode, but we keep position
+                width: 200,
             }
         };
     });

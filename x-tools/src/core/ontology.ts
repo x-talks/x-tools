@@ -85,7 +85,7 @@ export interface ConflictDetection {
 
 export interface OntologyNode {
     id: string;
-    type: 'purpose' | 'vision' | 'mission' | 'strategy' | 'value' | 'principle' | 'behavior' | 'goal' | 'role';
+    type: 'circle' | 'purpose' | 'vision' | 'mission' | 'strategy' | 'value' | 'principle' | 'behavior' | 'goal' | 'role';
     label: string;
     text?: string;
     description?: string;
@@ -180,11 +180,28 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
     const relationships: SemanticRelationship[] = [];
 
     // Add identity layer nodes
+    // NEW: Circle Node
+    if (state.team?.teamName) {
+        nodes.push({
+            id: 'circle',
+            type: 'circle',
+            label: state.team.teamName,
+            text: state.team.teamPurpose, // Circle acts as container, but we can show purpose text or just name
+            description: 'The Circle',
+            tags: [],
+            layer: 'identity',
+            semanticTags: [],
+            metadata: { createdAt: state.team.createdAt || new Date().toISOString(), source: 'user' },
+            // @ts-ignore - Adding custom property for visualization
+            logo: state.team.logo
+        });
+    }
+
     if (state.team?.teamPurpose) {
         nodes.push({
             id: 'purpose',
             type: 'purpose',
-            label: 'Purpose',
+            label: 'Purpose: ' + (state.team.teamPurpose.length > 30 ? state.team.teamPurpose.substring(0, 30) + '...' : state.team.teamPurpose),
             text: state.team.teamPurpose,
             description: state.team.purposeMetadata?.description,
             tags: state.team.purposeMetadata?.tags,
@@ -198,7 +215,7 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
         nodes.push({
             id: 'vision',
             type: 'vision',
-            label: 'Vision',
+            label: 'Vision: ' + (state.vision.text.length > 30 ? state.vision.text.substring(0, 30) + '...' : state.vision.text),
             text: state.vision.text,
             description: state.vision.description,
             tags: state.vision.tags,
@@ -212,7 +229,7 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
         nodes.push({
             id: 'mission',
             type: 'mission',
-            label: 'Mission',
+            label: 'Mission: ' + (state.mission.text.length > 30 ? state.mission.text.substring(0, 30) + '...' : state.mission.text),
             text: state.mission.text,
             description: state.mission.description,
             tags: state.mission.tags,

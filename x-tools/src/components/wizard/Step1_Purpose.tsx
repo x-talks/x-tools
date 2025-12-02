@@ -20,7 +20,7 @@ export function Step1_Purpose() {
         tags: state.team?.purposeMetadata?.tags || []
     });
 
-    const { items: libraryItems, addToLibrary } = useLibrary('purpose', WIZARD_CONTENT.Purpose.Examples);
+    const { items: libraryItems, addToLibrary } = useLibrary('purpose', [...WIZARD_CONTENT.Purpose.Examples, ...(WIZARD_CONTENT.Purpose.Statements || [])]);
 
     // Real-time update with debounce
     useEffect(() => {
