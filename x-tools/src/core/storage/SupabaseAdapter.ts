@@ -13,7 +13,7 @@ export class SupabaseAdapter implements StorageAdapter {
     async listTeams(): Promise<SavedTeam[]> {
         try {
             const { data, error } = await this.supabase
-                .from('teams')
+                .from('circle')
                 .select('*')
                 .order('updated_at', { ascending: false });
 
@@ -53,7 +53,7 @@ export class SupabaseAdapter implements StorageAdapter {
 
         try {
             const { error } = await this.supabase
-                .from('teams')
+                .from('circle')
                 .upsert({
                     id: savedTeam.id,
                     name: savedTeam.name,
@@ -76,7 +76,7 @@ export class SupabaseAdapter implements StorageAdapter {
     async loadTeam(id: string): Promise<WizardState | null> {
         try {
             const { data, error } = await this.supabase
-                .from('teams')
+                .from('circle')
                 .select('*')
                 .eq('id', id)
                 .single();
@@ -96,7 +96,7 @@ export class SupabaseAdapter implements StorageAdapter {
     async deleteTeam(id: string): Promise<void> {
         try {
             const { error } = await this.supabase
-                .from('teams')
+                .from('circle')
                 .delete()
                 .eq('id', id);
 
@@ -128,7 +128,7 @@ export class SupabaseAdapter implements StorageAdapter {
                     };
 
                     const { error } = await this.supabase
-                        .from('teams')
+                        .from('circle')
                         .insert({
                             id: exampleSaved.id,
                             name: exampleSaved.name,

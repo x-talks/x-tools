@@ -279,20 +279,56 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
             metadata: { createdAt: new Date().toISOString(), source: 'user' }
         });
 
-        // Create relationships: Behavior implements Values
-        behavior.derivedFromValues.forEach(valueId => {
+        // Create relationships: Behavior implements Principle (preferred) or Value (legacy fallback)
+        if (behavior.principleId) {
             relationships.push({
-                id: `rel-${behavior.id}-${valueId}`,
+                id: `rel-${behavior.id}-${behavior.principleId}`,
                 sourceId: behavior.id,
-                targetId: valueId,
+                targetId: behavior.principleId,
                 sourceType: 'behavior',
-                targetType: 'value',
+                targetType: 'principle',
                 relationType: RelationType.IMPLEMENTS,
-                strength: 70,
+                strength: 90,
                 confidence: 100,
                 auto_detected: false
             });
-        });
+        } else if (behavior.derivedFromValues && behavior.derivedFromValues.length > 0) {
+            // Legacy: Behavior linked to Value. Try to find a Principle linked to this Value to bridge the gap.
+            // This enforces the Value -> Principle -> Behavior hierarchy even if data is legacy.
+            behavior.derivedFromValues.forEach(valueId => {
+                // Find a principle that derives from this value
+                const parentPrinciple = state.principles.find(p => p.derivedFromValues?.includes(valueId));
+
+                if (parentPrinciple) {
+                    // Link to the found principle
+                    relationships.push({
+                        id: `rel-${behavior.id}-${parentPrinciple.id}`,
+                        sourceId: behavior.id,
+                        targetId: parentPrinciple.id,
+                        sourceType: 'behavior',
+                        targetType: 'principle',
+                        relationType: RelationType.IMPLEMENTS,
+                        strength: 80,
+                        confidence: 90, // Slightly lower confidence as it's inferred
+                        auto_detected: true,
+                        explanation: 'Inferred hierarchy: Behavior -> Principle'
+                    });
+                } else {
+                    // Fallback: Link directly to Value (breaking strict hierarchy but preserving data)
+                    relationships.push({
+                        id: `rel-${behavior.id}-${valueId}`,
+                        sourceId: behavior.id,
+                        targetId: valueId,
+                        sourceType: 'behavior',
+                        targetType: 'value',
+                        relationType: RelationType.IMPLEMENTS,
+                        strength: 70,
+                        confidence: 100,
+                        auto_detected: false
+                    });
+                }
+            });
+        }
     });
 
     // Add execution layer (goals)
@@ -312,6 +348,102 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
     if (state.relationships) {
         relationships.push(...state.relationships);
     }
+
+    // STRICT HIERARCHY EDGES
+    // 1. Purpose -> Vision
+    if (state.team?.teamPurpose && state.vision?.text) {
+        relationships.push({
+            id: 'rel-purpose-vision',
+            sourceId: 'purpose',
+            targetId: 'vision',
+            sourceType: 'purpose',
+            targetType: 'vision',
+            relationType: RelationType.SUPPORTS,
+            strength: 100,
+            confidence: 100,
+            auto_detected: false,
+            explanation: 'Vision supports the Purpose'
+        });
+    }
+
+    // 2. Vision -> Mission
+    if (state.vision?.text && state.mission?.text) {
+        relationships.push({
+            id: 'rel-vision-mission',
+            sourceId: 'vision',
+            targetId: 'mission',
+            sourceType: 'vision',
+            targetType: 'mission',
+            relationType: RelationType.REINFORCES,
+            strength: 100,
+            confidence: 100,
+            auto_detected: false,
+            explanation: 'Mission reinforces the Vision'
+        });
+    }
+
+    // 3. Mission -> Strategy
+    if (state.mission?.text && state.strategy?.text) {
+        // Add Strategy Node if not present (it was missing in previous code)
+        const strategyNodeExists = nodes.find(n => n.type === 'strategy');
+        if (!strategyNodeExists) {
+            nodes.push({
+                id: 'strategy',
+                type: 'strategy',
+                label: 'Strategy',
+                text: state.strategy.text,
+                description: state.strategy.description,
+                tags: state.strategy.tags,
+                layer: 'execution',
+                semanticTags: extractSemanticTags(state.strategy.text),
+                metadata: { createdAt: new Date().toISOString(), source: 'user' }
+            });
+        }
+
+        relationships.push({
+            id: 'rel-mission-strategy',
+            sourceId: 'mission',
+            targetId: 'strategy',
+            sourceType: 'mission',
+            targetType: 'strategy',
+            relationType: RelationType.IMPLEMENTS,
+            strength: 100,
+            confidence: 100,
+            auto_detected: false,
+            explanation: 'Strategy implements the Mission'
+        });
+    }
+
+    // 4. Strategy -> Goal
+    if (state.strategy?.text && state.goals.length > 0) {
+        state.goals.forEach((goal, index) => {
+            const goalId = `goal-${index}`;
+            relationships.push({
+                id: `rel-strategy-${goalId}`,
+                sourceId: 'strategy',
+                targetId: goalId,
+                sourceType: 'strategy',
+                targetType: 'goal',
+                relationType: RelationType.IMPLEMENTS,
+                strength: 100,
+                confidence: 100,
+                auto_detected: false,
+                explanation: 'Goal implements the Strategy'
+            });
+        });
+    }
+
+    // 5. Behavior -> Principle (Update from Value)
+    // Previous code linked Behavior -> Value. Now we link Behavior -> Principle if possible.
+    // However, the state.behaviors still has derivedFromValues (legacy).
+    // We need to find the Principle that derives from that Value to link properly.
+    // For now, we will link Behavior -> Value as fallback, but if we can match a Principle, we link there.
+
+    // Note: The previous loop for behaviors linked to values. We should update it.
+    // But since we are appending here, let's leave the existing loop and add hierarchy logic if needed.
+    // Actually, the user requested "behavior: Linked to principle".
+    // I should modify the Behavior loop above instead of appending here.
+
 
     // Detect conflicts
     const conflicts: ConflictDetection[] = [];
