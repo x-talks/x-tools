@@ -5,6 +5,7 @@ import { WizardTextLayout } from './WizardTextLayout';
 import { useLibrary } from '../../hooks/useLibrary';
 import AI, { SuggestionOption } from '../../core/ai';
 import { AISuggestionModal } from '../AISuggestionModal';
+import { MetadataEditor, Metadata } from '../MetadataEditor';
 
 export function Step4_Strategy() {
     const { state, dispatch } = useWizard();
@@ -17,6 +18,12 @@ export function Step4_Strategy() {
     const [aiSuggestions, setAiSuggestions] = useState<SuggestionOption[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const [metadata, setMetadata] = useState<Metadata>({
+        id: 'strategy-1',
+        description: state.strategy?.description || '',
+        tags: state.strategy?.tags || []
+    });
+
     useEffect(() => {
         if (!strategyText && !state.strategy?.text) {
             const randomStrategy = libraryItems[Math.floor(Math.random() * libraryItems.length)];
@@ -24,13 +31,30 @@ export function Step4_Strategy() {
         }
     }, []);
 
-    const handleNext = () => {
-        dispatch({
-            type: 'SET_STRATEGY',
-            payload: {
-                text: strategyText
+    // Real-time update with debounce
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const currentStrategy = state.strategy;
+            const hasChanged =
+                currentStrategy?.text !== strategyText ||
+                currentStrategy?.description !== metadata.description ||
+                JSON.stringify(currentStrategy?.tags) !== JSON.stringify(metadata.tags);
+
+            if (hasChanged) {
+                dispatch({
+                    type: 'SET_STRATEGY',
+                    payload: {
+                        text: strategyText,
+                        description: metadata.description,
+                        tags: metadata.tags
+                    }
+                });
             }
-        });
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [strategyText, metadata, state.strategy, dispatch]);
+
+    const handleNext = () => {
         dispatch({ type: 'NEXT_STEP' });
     };
 
@@ -64,6 +88,24 @@ export function Step4_Strategy() {
         setIsModalOpen(false);
     };
 
+    const handleMetadataUpdate = (newMeta: Metadata) => {
+        setMetadata(newMeta);
+    };
+
+    const handleGenerateMetadata = async () => {
+        try {
+            console.log('Generating metadata for:', strategyText);
+            const generated = await AI.generateMetadata('Strategy', strategyText, `Mission: ${state.mission?.text || 'Unknown'}`);
+            setMetadata((prev: Metadata) => ({
+                ...prev,
+                description: generated.description,
+                tags: generated.tags
+            }));
+        } catch (error) {
+            console.error('Failed to generate metadata:', error);
+        }
+    };
+
     return (
         <>
             <WizardTextLayout
@@ -81,7 +123,16 @@ export function Step4_Strategy() {
                 onPrev={() => dispatch({ type: 'PREV_STEP' })}
                 isNextDisabled={!strategyText.trim()}
                 example="Compete through AI-powered automation and modular architecture."
-            />
+            >
+                <MetadataEditor
+                    id={metadata.id}
+                    description={metadata.description}
+                    tags={metadata.tags}
+                    onUpdate={handleMetadataUpdate}
+                    onGenerateWithAI={handleGenerateMetadata}
+                    entityType="Strategy"
+                />
+            </WizardTextLayout>
             <AISuggestionModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}

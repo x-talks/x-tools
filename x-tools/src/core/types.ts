@@ -2,6 +2,10 @@ export interface Team {
     teamId: string;
     teamName: string;
     teamPurpose: string;
+    purposeMetadata?: {
+        description?: string;
+        tags?: string[];
+    };
     goals: string[];
     logo?: string; // Base64 string
     createdAt: string; // ISO8601
@@ -48,6 +52,7 @@ export interface Value {
     source: 'user' | 'system';
     explanation: string;
     description?: string;
+    tags?: string[];
 }
 
 export interface Behavior {

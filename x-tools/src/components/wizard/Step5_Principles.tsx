@@ -7,6 +7,7 @@ import { X } from 'lucide-react';
 import type { Principle } from '../../core/types';
 import AI from '../../core/ai';
 import { useLibrary } from '../../hooks/useLibrary';
+import { MetadataEditor, Metadata } from '../MetadataEditor';
 
 export function Step5_Principles() {
     const { state, dispatch } = useWizard();
@@ -29,6 +30,18 @@ export function Step5_Principles() {
         }
     }, []);
 
+    // Real-time update with debounce
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            // Check for deep equality to avoid loops
+            const currentPrinciples = state.principles;
+            if (JSON.stringify(currentPrinciples) !== JSON.stringify(principles)) {
+                dispatch({ type: 'SET_PRINCIPLES', payload: principles });
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [principles, state.principles, dispatch]);
+
     const handleAdd = (text: string) => {
         if (principles.some(p => p.label.toLowerCase() === text.toLowerCase())) return;
 
@@ -50,8 +63,41 @@ export function Step5_Principles() {
         setPrinciples(items);
     };
 
+    const handleUpdateMetadata = (id: string, metadata: Metadata) => {
+        setPrinciples(prev => prev.map(p => {
+            if (p.id === id) {
+                return {
+                    ...p,
+                    description: metadata.description,
+                    tags: metadata.tags
+                };
+            }
+            return p;
+        }));
+    };
+
+    const handleGenerateMetadata = async (id: string, label: string) => {
+        try {
+            console.log('Generating metadata for principle:', label);
+            const values = state.values.map(v => v.label).join(', ');
+            const generated = await AI.generateMetadata('Principle', label, `Values: ${values}`);
+
+            setPrinciples(prev => prev.map(p => {
+                if (p.id === id) {
+                    return {
+                        ...p,
+                        description: generated.description,
+                        tags: generated.tags
+                    };
+                }
+                return p;
+            }));
+        } catch (error) {
+            console.error('Failed to generate metadata:', error);
+        }
+    };
+
     const handleNext = () => {
-        dispatch({ type: 'SET_PRINCIPLES', payload: principles });
         dispatch({ type: 'NEXT_STEP' });
     };
 
@@ -70,8 +116,6 @@ export function Step5_Principles() {
         setIsGenerating(true);
         try {
             const values = state.values.map(v => v.label);
-            // Use the first principle + values context
-            // We pass current context to ensure additive suggestions
             const suggestions = await AI.suggestPrinciples(values);
 
             const newPrinciples = suggestions.map((text, i) => ({
@@ -110,14 +154,24 @@ export function Step5_Principles() {
             onAISuggest={handleAISuggest}
             onMagicFill={handleMagicFill}
             renderItem={(p) => (
-                <div className="flex items-start gap-2 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
-                    <div className="flex-1">
-                        <div className="font-medium text-slate-900 dark:text-slate-100">{p.label}</div>
-                        <SemanticTags text={p.label + ' ' + (p.explanation || '')} maxTags={2} />
+                <div className="flex flex-col p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
+                    <div className="flex items-start gap-2">
+                        <div className="flex-1">
+                            <div className="font-medium text-slate-900 dark:text-slate-100">{p.label}</div>
+                            <SemanticTags text={p.label + ' ' + (p.explanation || '')} maxTags={2} />
+                        </div>
+                        <button onClick={() => handleRemove(p.id)} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700">
+                            <X className="h-4 w-4 text-slate-400" />
+                        </button>
                     </div>
-                    <button onClick={() => handleRemove(p.id)} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700">
-                        <X className="h-4 w-4 text-slate-400" />
-                    </button>
+                    <MetadataEditor
+                        id={p.id}
+                        description={p.description}
+                        tags={p.tags}
+                        onUpdate={(meta) => handleUpdateMetadata(p.id, meta)}
+                        onGenerateWithAI={() => handleGenerateMetadata(p.id, p.label)}
+                        entityType="Principle"
+                    />
                 </div>
             )}
             getLabel={(p) => p.label}

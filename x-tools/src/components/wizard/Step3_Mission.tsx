@@ -5,6 +5,7 @@ import { WizardTextLayout } from './WizardTextLayout';
 import { useLibrary } from '../../hooks/useLibrary';
 import AI, { SuggestionOption } from '../../core/ai';
 import { AISuggestionModal } from '../AISuggestionModal';
+import { MetadataEditor, Metadata } from '../MetadataEditor';
 
 export function Step3_Mission() {
     const { state, dispatch } = useWizard();
@@ -14,6 +15,12 @@ export function Step3_Mission() {
     const [aiSuggestions, setAiSuggestions] = useState<SuggestionOption[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const [metadata, setMetadata] = useState<Metadata>({
+        id: 'mission-1',
+        description: state.mission?.description || '',
+        tags: state.mission?.tags || []
+    });
+
     useEffect(() => {
         if (!mission && !state.mission?.text) {
             const randomMission = libraryItems[Math.floor(Math.random() * libraryItems.length)];
@@ -21,14 +28,32 @@ export function Step3_Mission() {
         }
     }, []);
 
-    const handleNext = () => {
-        dispatch({
-            type: 'SET_MISSION',
-            payload: {
-                text: mission,
-                keywords: []
+    // Real-time update with debounce
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const currentMission = state.mission;
+            const hasChanged =
+                currentMission?.text !== mission ||
+                currentMission?.description !== metadata.description ||
+                JSON.stringify(currentMission?.tags) !== JSON.stringify(metadata.tags);
+
+            if (hasChanged) {
+                dispatch({
+                    type: 'SET_MISSION',
+                    payload: {
+                        id: 'mission-1',
+                        text: mission,
+                        keywords: currentMission?.keywords || [],
+                        description: metadata.description,
+                        tags: metadata.tags
+                    }
+                });
             }
-        });
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [mission, metadata, state.mission, dispatch]);
+
+    const handleNext = () => {
         dispatch({ type: 'NEXT_STEP' });
     };
 
@@ -62,6 +87,24 @@ export function Step3_Mission() {
         setIsModalOpen(false);
     };
 
+    const handleMetadataUpdate = (newMeta: Metadata) => {
+        setMetadata(newMeta);
+    };
+
+    const handleGenerateMetadata = async () => {
+        try {
+            console.log('Generating metadata for:', mission);
+            const generated = await AI.generateMetadata('Mission', mission, `Vision: ${state.vision?.text || 'Unknown'}`);
+            setMetadata((prev: Metadata) => ({
+                ...prev,
+                description: generated.description,
+                tags: generated.tags
+            }));
+        } catch (error) {
+            console.error('Failed to generate metadata:', error);
+        }
+    };
+
     return (
         <>
             <WizardTextLayout
@@ -79,7 +122,16 @@ export function Step3_Mission() {
                 onPrev={() => dispatch({ type: 'PREV_STEP' })}
                 isNextDisabled={!mission.trim()}
                 example="To accelerate the world's transition to sustainable energy."
-            />
+            >
+                <MetadataEditor
+                    id={metadata.id}
+                    description={metadata.description}
+                    tags={metadata.tags}
+                    onUpdate={handleMetadataUpdate}
+                    onGenerateWithAI={handleGenerateMetadata}
+                    entityType="Mission"
+                />
+            </WizardTextLayout>
             <AISuggestionModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}

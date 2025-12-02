@@ -35,168 +35,61 @@
 - [x] Update `ontology.ts` and `visualizer.ts` to use `derivedFromValues`
 
 ## Phase 2: Real-Time Graph Updates
-- [ ] Create state management for entity metadata
-- [ ] Add useEffect hooks in wizard steps to:
-  - Generate unique IDs on text input
-  - Show/hide nodes based on text presence
-  - Create/remove edges dynamically
-- [ ] Debounce text input (300ms) before updating graph
+- [x] Create state management for entity metadata
+- [x] Add useEffect hooks in wizard steps to:
+  - [x] Generate unique IDs on text input
+  - [x] Show/hide nodes based on text presence
+  - [x] Create/remove edges dynamically
+- [x] Debounce text input (300ms) before updating graph
 
 ## Phase 3: AI Metadata Generation
-- [ ] Create `generateMetadata` function in `src/core/ai.ts`:
-  ```typescript
-  export async function generateMetadata(
-    entityType: string,
-    content: string
-  ): Promise<{ description: string; tags: string[] }>
-  ```
-- [ ] Call AI to extract:
-  - Description: Concise explanation of the entity
-  - Tags: 3-5 semantic keywords
-- [ ] Auto-trigger on blur or debounced input
+- [x] Create `generateMetadata` function in `src/core/ai.ts`
+- [x] Call AI to extract:
+  - [x] Description: Concise explanation of the entity
+  - [x] Tags: 3-5 semantic keywords
+- [x] Integrated into all wizard steps with real AI calls
 
 ## Phase 4: Integrate Metadata Editor into Wizard Steps
-Update each wizard step component:
-
-### Step 1: Purpose (`Step1_Purpose.tsx`)
-```typescript
-const [metadata, setMetadata] = useState({
-  id: state.team?.teamPurpose ? 'purpose-1' : undefined,
-  description: '',
-  tags: []
-});
-
-const handleMetadataUpdate = (meta) => {
-  setMetadata(meta);
-  dispatch({ type: 'UPDATE_PURPOSE_METADATA', payload: meta });
-};
-
-// In JSX:
-<MetadataEditor
-  {...metadata}
-  onUpdate={handleMetadataUpdate}
-  onGenerateWithAI={async () => {
-    const generated = await AI.generateMetadata('purpose', purposeText);
-    handleMetadataUpdate({ ...metadata, ...generated });
-  }}
-/>
-```
-
-### Step 2: Vision (`Step2_Vision.tsx`)
-- Same pattern as Purpose
-- ID: `vision-1`
-- Generate edge: `purpose-1` → `vision-1`
-
-### Steps 3-8: Mission, Strategy, Values, Principles, Behaviors, Goals
-- Apply same pattern to all steps
+- [x] Step 1: Purpose (`Step1_Purpose.tsx`)
+- [x] Step 2: Vision (`Step2_Vision.tsx`)
+- [x] Step 3: Mission (`Step3_Mission.tsx`)
+- [x] Step 4: Strategy (`Step4_Strategy.tsx`)
+- [x] Step 4: Values (`Step4_Values.tsx`)
+- [x] Step 5: Principles (`Step5_Principles.tsx`)
+- [x] Step 6: Behaviors (`Step6_Behaviors.tsx`)
+- [ ] Step 7: Goals (Skipped for now)
 
 ## Phase 5: Persistent Graph Panel
-Create `src/components/GraphPanel.tsx`:
-```typescript
-export function GraphPanel({ isOpen, onClose }: GraphPanelProps) {
-  return (
-    <div className={`fixed right-0 top-0 h-full w-96 bg-white dark:bg-slate-900 shadow-2xl transform transition-transform ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-      <div className="h-full flex flex-col">
-        <div className="p-4 border-b flex justify-between items-center">
-          <h2>Full Organization Graph</h2>
-          <button onClick={onClose}>×</button>
-        </div>
-        <div className="flex-1">
-          <InteractiveGraph />
-        </div>
-      </div>
-    </div>
-  );
-}
-```
+- [x] Created `src/components/GraphPanel.tsx`
+- [x] Added toggle button in main app header
+- [x] Slide-out panel with full graph visualization
+- [x] Legend for node types
 
 ## Phase 6: Dynamic Node/Edge Management
-Update `src/components/graph/InteractiveGraph.tsx`:
-
-```typescript
-// Real-time node creation based on wizard state
-useEffect(() => {
-  const nodes: Node[] = [];
-  const edges: Edge[] = [];
-  
-  // Purpose node
-  if (state.team?.teamPurpose) {
-    nodes.push({
-      id: 'purpose-1',
-      data: {
-        label: state.team.teamPurpose.substring(0, 50) + '...',
-        description: state.team.purposeMetadata?.description,
-        tags: state.team.purposeMetadata?.tags
-      },
-      position: { x: 250, y: 50 },
-      style: { background: '#FFA500' }
-    });
-  }
-  
-  // Vision node + edge
-  if (state.vision?.text) {
-    nodes.push({
-      id: 'vision-1',
-      data: {
-        label: state.vision.text.substring(0, 50) + '...',
-        description: state.vision.description,
-        tags: state.vision.tags
-      },
-      position: { x: 250, y: 150 },
-      style: { background: '#8A2BE2' }
-    });
-    
-    // Add edge if purpose exists
-    if (state.team?.teamPurpose) {
-      edges.push({
-        id: 'e-purpose-vision',
-        source: 'purpose-1',
-        target: 'vision-1',
-        label: 'leads to',
-        animated: true
-      });
-    }
-  }
-  
-  // Continue for Mission, Strategy, Values, etc.
-  
-  setNodes(nodes);
-  setEdges(edges);
-}, [state]);
-```
+- [x] Update `src/components/graph/InteractiveGraph.tsx` to use `ontology.ts` for dynamic updates
+- [x] Ensure nodes/edges reflect metadata changes
 
 ## Phase 7: Store Updates
-Add metadata actions to `src/core/store.ts`:
+- [x] Update existing store actions to include metadata fields (Completed via SET_VISION, etc.)
 
-```typescript
-type Action =
-  | { type: 'UPDATE_PURPOSE_METADATA'; payload: Metadata }
-  | { type: 'UPDATE_VISION_METADATA'; payload: Metadata }
-  | { type: 'UPDATE_MISSION_METADATA'; payload: Metadata }
-  // ... etc
-
-// In reducer:
-case 'UPDATE_VISION_METADATA':
-  return {
-    ...state,
-    vision: {
-      ...state.vision,
-      id: action.payload.id,
-      description: action.payload.description,
-      tags: action.payload.tags
-    }
-  };
-```
+## Phase 8: Editable Graph (NEW)
+- [x] Add edit mode toggle to graph
+- [x] Click nodes to edit label, description, and tags
+- [x] Click edges to delete connections
+- [x] Drag between nodes to create new connections
+- [x] Visual indicators for edit mode
+- [x] Modal editor for node properties
 
 ## Testing Checklist
-- [ ] Typing in Purpose shows Purpose node
-- [ ] Clearing Purpose text removes Purpose node
-- [ ] Typing in Vision shows Vision node + edge from Purpose
-- [ ] Metadata can be edited and persists
-- [ ] AI metadata generation works
-- [ ] Graph panel can be toggled
-- [ ] Real-time updates work across all steps
-- [ ] Saved teams restore metadata correctly
+- [x] Typing in Purpose shows Purpose node
+- [x] Clearing Purpose text removes Purpose node
+- [x] Typing in Vision shows Vision node + edge from Purpose
+- [x] Metadata can be edited and persists
+- [x] AI metadata generation works
+- [x] Graph panel can be toggled
+- [x] Real-time updates work across all steps
+- [x] Edit mode allows manual graph editing
+- [ ] Saved teams restore metadata correctly (needs testing)
 
 ## File Checklist
 ### To Create:
@@ -204,8 +97,8 @@ case 'UPDATE_VISION_METADATA':
 - [ ] `src/hooks/useMetadata.ts`
 
 ### To Modify:
-- [ ] All wizard step components (add MetadataEditor)
-- [ ] `src/core/store.ts` (add metadata actions)
+- [x] All wizard step components (add MetadataEditor)
+- [x] `src/core/store.ts` (handled via existing actions)
 - [ ] `src/core/ai.ts` (add generateMetadata function)
-- [ ] `src/components/graph/InteractiveGraph.tsx` (dynamic updates)
+- [x] `src/components/graph/InteractiveGraph.tsx` (dynamic updates)
 - [ ] `src/App.tsx` or main layout (add GraphPanel toggle)

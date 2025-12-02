@@ -794,6 +794,72 @@ function labelToConcept(label: string): any {
 // UNIFIED AI INTERFACE
 // ============================================================================
 
+// ============================================================================
+// METADATA GENERATION
+// ============================================================================
+
+export interface GeneratedMetadata {
+    description: string;
+    tags: string[];
+}
+
+/**
+ * Generate metadata (description and tags) for an entity using AI
+ */
+export async function generateMetadata(
+    entityType: string,
+    content: string,
+    context?: string
+): Promise<GeneratedMetadata> {
+    if (!isGroqConfigured()) {
+        // Fallback to rule-based metadata
+        return {
+            description: `${entityType}: ${content.substring(0, 100)}${content.length > 100 ? '...' : ''}`,
+            tags: extractSemanticTags(content).slice(0, 5).map(t => t.concept)
+        };
+    }
+
+    try {
+        const prompt = `You are an expert in organizational design. Generate metadata for the following ${entityType}.
+
+**${entityType} Content:**
+"${content}"
+
+${context ? `**Context:**\n${context}\n` : ''}
+
+**Task:**
+1. Write a concise 1-2 sentence description explaining what this ${entityType} means and why it matters.
+2. Extract 3-5 relevant tags/keywords that capture the essence of this ${entityType}.
+
+**Output Format (JSON only):**
+{
+  "description": "Your 1-2 sentence description here",
+  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
+}
+
+Return ONLY the JSON object, no additional text.`;
+
+        const result = await callGroqAPI(prompt, 'You are an expert in organizational design and metadata extraction. Return strictly valid JSON.');
+        const parsed = JSON.parse(result);
+
+        return {
+            description: parsed.description || `${entityType}: ${content.substring(0, 100)}`,
+            tags: Array.isArray(parsed.tags) ? parsed.tags.slice(0, 5) : []
+        };
+    } catch (error) {
+        console.error('AI metadata generation failed:', error);
+        // Fallback to semantic tags
+        return {
+            description: `${entityType}: ${content.substring(0, 100)}${content.length > 100 ? '...' : ''}`,
+            tags: extractSemanticTags(content).slice(0, 5).map(t => t.concept)
+        };
+    }
+}
+
+// ============================================================================
+// EXPORT
+// ============================================================================
+
 export const AI = {
     // Configuration
     configure: configureGroq,
@@ -811,6 +877,9 @@ export const AI = {
     suggestBehaviors,
     suggestGoals,
     improveMission,
+
+    // Metadata
+    generateMetadata,
 
     // Analysis
     analyzeText,

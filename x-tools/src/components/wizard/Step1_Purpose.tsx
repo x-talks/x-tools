@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWizard } from '../../core/store';
 import { WIZARD_CONTENT } from '../../core/rules';
 import { WizardTextLayout } from './WizardTextLayout';
 import { useLibrary } from '../../hooks/useLibrary';
 import AI, { SuggestionOption } from '../../core/ai';
 import { AISuggestionModal } from '../AISuggestionModal';
+import { MetadataEditor, Metadata } from '../MetadataEditor';
 
 export function Step1_Purpose() {
     const { state, dispatch } = useWizard();
@@ -13,15 +14,44 @@ export function Step1_Purpose() {
     const [aiSuggestions, setAiSuggestions] = useState<SuggestionOption[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const [metadata, setMetadata] = useState<Metadata>({
+        id: 'purpose-1',
+        description: state.team?.purposeMetadata?.description || '',
+        tags: state.team?.purposeMetadata?.tags || []
+    });
+
     const { items: libraryItems, addToLibrary } = useLibrary('purpose', WIZARD_CONTENT.Purpose.Examples);
 
+    // Real-time update with debounce
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (state.team) {
+                // Only dispatch if changed to avoid loops
+                const hasChanged =
+                    state.team.teamPurpose !== purpose ||
+                    state.team.purposeMetadata?.description !== metadata.description ||
+                    JSON.stringify(state.team.purposeMetadata?.tags) !== JSON.stringify(metadata.tags);
+
+                if (hasChanged) {
+                    dispatch({
+                        type: 'SET_TEAM',
+                        payload: {
+                            ...state.team,
+                            teamPurpose: purpose,
+                            purposeMetadata: {
+                                description: metadata.description,
+                                tags: metadata.tags
+                            }
+                        }
+                    });
+                }
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [purpose, metadata, state.team, dispatch]);
+
     const handleNext = () => {
-        if (state.team) {
-            dispatch({
-                type: 'SET_TEAM',
-                payload: { ...state.team, teamPurpose: purpose }
-            });
-        }
         dispatch({ type: 'NEXT_STEP' });
     };
 
@@ -50,6 +80,24 @@ export function Step1_Purpose() {
         setIsModalOpen(false);
     };
 
+    const handleMetadataUpdate = (newMeta: Metadata) => {
+        setMetadata(newMeta);
+    };
+
+    const handleGenerateMetadata = async () => {
+        try {
+            console.log('Generating metadata for:', purpose);
+            const generated = await AI.generateMetadata('Purpose', purpose, `Team: ${state.team?.teamName || 'Unknown'}`);
+            setMetadata((prev: Metadata) => ({
+                ...prev,
+                description: generated.description,
+                tags: generated.tags
+            }));
+        } catch (error) {
+            console.error('Failed to generate metadata:', error);
+        }
+    };
+
     return (
         <>
             <WizardTextLayout
@@ -67,7 +115,16 @@ export function Step1_Purpose() {
                 onPrev={() => dispatch({ type: 'PREV_STEP' })}
                 isNextDisabled={!purpose.trim()}
                 example="To enable our customers to make better financial decisions through accessible data."
-            />
+            >
+                <MetadataEditor
+                    id={metadata.id}
+                    description={metadata.description}
+                    tags={metadata.tags}
+                    onUpdate={handleMetadataUpdate}
+                    onGenerateWithAI={handleGenerateMetadata}
+                    entityType="Purpose"
+                />
+            </WizardTextLayout>
             <AISuggestionModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}

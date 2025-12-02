@@ -57,8 +57,8 @@ export function convertOntologyToReactFlow(ontology: OntologyGraph): { nodes: No
             data: {
                 label: node.label.length > 50 ? node.label.substring(0, 50) + '...' : node.label,
                 content: node.label,
-                description: node.text || node.label,
-                tags: [],
+                description: node.description || node.text || node.label,
+                tags: node.tags || [],
                 entityType: node.type
             },
             position: { x: 100 + xOffset, y: yPos },

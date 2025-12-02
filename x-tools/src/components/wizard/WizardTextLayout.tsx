@@ -27,6 +27,7 @@ interface WizardTextLayoutProps {
     isNextDisabled?: boolean;
 
     example?: string;
+    children?: React.ReactNode;
 }
 
 export function WizardTextLayout({
@@ -44,7 +45,8 @@ export function WizardTextLayout({
     onPrev,
     nextLabel = "Next",
     isNextDisabled,
-    example
+    example,
+    children
 }: WizardTextLayoutProps) {
     const [isLibraryExpanded, setIsLibraryExpanded] = useState(false);
 
@@ -136,6 +138,8 @@ export function WizardTextLayout({
                         </div>
                     )}
                 </div>
+
+                {children}
 
             </CardContent>
             <CardFooter className="justify-between">

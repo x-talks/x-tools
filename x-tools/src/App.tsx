@@ -20,6 +20,7 @@ import { ThemeProvider } from './components/ThemeProvider';
 import { ThemeToggle } from './components/ThemeToggle';
 import { AISettings } from './components/AISettings';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { GraphPanel } from './components/GraphPanel';
 
 const STEPS = [
   { title: 'Create Circle' },
@@ -38,6 +39,7 @@ const STEPS = [
 
 function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
   const { state, dispatch } = useWizard();
+  const [isGraphPanelOpen, setIsGraphPanelOpen] = useState(false);
 
   const handleStepClick = (index: number) => {
     dispatch({ type: 'GO_TO_STEP', payload: index });
@@ -77,31 +79,41 @@ function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="mx-auto max-w-4xl relative pt-16">
-        <div className="absolute top-0 left-0 w-full flex justify-between items-center mb-8">
-          <button
-            onClick={onViewHome}
-            className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-300"
-          >
-            <div className="p-1 rounded-full bg-slate-100 group-hover:bg-blue-50 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-600 group-hover:text-blue-600"><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></svg>
+    <>
+      <div className="space-y-8">
+        <div className="mx-auto max-w-4xl relative pt-16">
+          <div className="absolute top-0 left-0 w-full flex justify-between items-center mb-8">
+            <button
+              onClick={onViewHome}
+              className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-300"
+            >
+              <div className="p-1 rounded-full bg-slate-100 group-hover:bg-blue-50 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-600 group-hover:text-blue-600"><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></svg>
+              </div>
+              <span className="text-sm font-medium text-slate-600 group-hover:text-slate-900">Back to Home</span>
+            </button>
+            <div className="text-sm font-medium text-slate-400 flex items-center gap-2">
+              Minimal Vibroscope <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full ml-1">v1.2</span>
+              <div className="w-px h-4 bg-slate-300 dark:bg-slate-700 mx-1" />
+              <button
+                onClick={() => setIsGraphPanelOpen(!isGraphPanelOpen)}
+                className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-semibold hover:from-purple-600 hover:to-blue-600 transition-all shadow-md hover:shadow-lg"
+                title="Toggle Organization Graph"
+              >
+                {isGraphPanelOpen ? 'Hide' : 'Show'} Graph
+              </button>
+              <AISettings />
+              <ThemeToggle />
             </div>
-            <span className="text-sm font-medium text-slate-600 group-hover:text-slate-900">Back to Home</span>
-          </button>
-          <div className="text-sm font-medium text-slate-400 flex items-center gap-2">
-            Minimal Vibroscope <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full ml-1">v1.2</span>
-            <div className="w-px h-4 bg-slate-300 dark:bg-slate-700 mx-1" />
-            <AISettings />
-            <ThemeToggle />
           </div>
+          <Stepper steps={STEPS} currentStep={state.currentStep} onStepClick={handleStepClick} />
         </div>
-        <Stepper steps={STEPS} currentStep={state.currentStep} onStepClick={handleStepClick} />
+        <div className="mx-auto max-w-4xl">
+          {renderStep()}
+        </div>
       </div>
-      <div className="mx-auto max-w-4xl">
-        {renderStep()}
-      </div>
-    </div>
+      <GraphPanel isOpen={isGraphPanelOpen} onClose={() => setIsGraphPanelOpen(false)} />
+    </>
   );
 }
 

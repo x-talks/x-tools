@@ -7,6 +7,7 @@ import { X } from 'lucide-react';
 import type { Value } from '../../core/types';
 import { useLibrary } from '../../hooks/useLibrary';
 import AI from '../../core/ai';
+import { MetadataEditor, Metadata } from '../MetadataEditor';
 
 export function Step4_Values() {
     const { state, dispatch } = useWizard();
@@ -26,6 +27,18 @@ export function Step4_Values() {
             })));
         }
     }, []);
+
+    // Real-time update with debounce
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            // Check for deep equality to avoid loops
+            const currentValues = state.values;
+            if (JSON.stringify(currentValues) !== JSON.stringify(selectedValues)) {
+                dispatch({ type: 'SET_VALUES', payload: selectedValues });
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [selectedValues, state.values, dispatch]);
 
     const handleAdd = (text: string) => {
         // Check if already selected
@@ -51,8 +64,40 @@ export function Step4_Values() {
         setSelectedValues(items);
     };
 
+    const handleUpdateMetadata = (id: string, metadata: Metadata) => {
+        setSelectedValues(prev => prev.map(v => {
+            if (v.id === id) {
+                return {
+                    ...v,
+                    description: metadata.description,
+                    tags: metadata.tags
+                };
+            }
+            return v;
+        }));
+    };
+
+    const handleGenerateMetadata = async (id: string, label: string) => {
+        try {
+            console.log('Generating metadata for value:', label);
+            const generated = await AI.generateMetadata('Value', label, `Purpose: ${state.team?.teamPurpose || 'Unknown'}`);
+
+            setSelectedValues(prev => prev.map(v => {
+                if (v.id === id) {
+                    return {
+                        ...v,
+                        description: generated.description,
+                        tags: generated.tags
+                    };
+                }
+                return v;
+            }));
+        } catch (error) {
+            console.error('Failed to generate metadata:', error);
+        }
+    };
+
     const handleNext = () => {
-        dispatch({ type: 'SET_VALUES', payload: selectedValues });
         dispatch({ type: 'NEXT_STEP' });
     };
 
@@ -105,14 +150,24 @@ export function Step4_Values() {
             onAISuggest={handleAISuggest}
             onMagicFill={handleMagicFill}
             renderItem={(val) => (
-                <div className="flex items-start gap-2 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
-                    <div className="flex-1">
-                        <div className="font-medium text-slate-900 dark:text-slate-100">{val.label}</div>
-                        <SemanticTags text={val.label + ' ' + val.explanation} maxTags={2} />
+                <div className="flex flex-col p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
+                    <div className="flex items-start gap-2">
+                        <div className="flex-1">
+                            <div className="font-medium text-slate-900 dark:text-slate-100">{val.label}</div>
+                            <SemanticTags text={val.label + ' ' + val.explanation} maxTags={2} />
+                        </div>
+                        <button onClick={() => handleRemove(val.id)} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700">
+                            <X className="h-4 w-4 text-slate-400" />
+                        </button>
                     </div>
-                    <button onClick={() => handleRemove(val.id)} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700">
-                        <X className="h-4 w-4 text-slate-400" />
-                    </button>
+                    <MetadataEditor
+                        id={val.id}
+                        description={val.description}
+                        tags={val.tags}
+                        onUpdate={(meta) => handleUpdateMetadata(val.id, meta)}
+                        onGenerateWithAI={() => handleGenerateMetadata(val.id, val.label)}
+                        entityType="Value"
+                    />
                 </div>
             )}
             getLabel={(val) => val.label}

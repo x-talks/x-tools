@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Plus, X, Sparkles } from 'lucide-react';
 
-export interface MetadataProps {
+export interface Metadata {
     id?: string;
     description?: string;
     tags?: string[];
-    onUpdate: (metadata: { id?: string; description?: string; tags?: string[] }) => void;
-    onGenerateWithAI?: () => Promise<void>;
-    isGenerating?: boolean;
 }
 
-export function MetadataEditor({ id, description, tags = [], onUpdate, onGenerateWithAI, isGenerating }: MetadataProps) {
+export interface MetadataProps extends Metadata {
+    onUpdate: (metadata: Metadata) => void;
+    onGenerateWithAI?: () => Promise<void>;
+    isGenerating?: boolean;
+    entityType?: string;
+}
+
+export function MetadataEditor({ id, description, tags = [], onUpdate, onGenerateWithAI, isGenerating, entityType }: MetadataProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [editingDesc, setEditingDesc] = useState(description || '');
     const [editingTags, setEditingTags] = useState(tags);
@@ -48,7 +52,7 @@ export function MetadataEditor({ id, description, tags = [], onUpdate, onGenerat
                 <div className="flex items-center gap-2">
                     {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                        Metadata {description || tags.length > 0 ? '(AI-Generated)' : ''}
+                        {entityType || 'Metadata'} {description || tags.length > 0 ? '(AI-Generated)' : ''}
                     </span>
                 </div>
                 {onGenerateWithAI && (

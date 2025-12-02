@@ -7,6 +7,7 @@ import { X } from 'lucide-react';
 import type { Behavior } from '../../core/types';
 import AI from '../../core/ai';
 import { useLibrary } from '../../hooks/useLibrary';
+import { MetadataEditor, Metadata } from '../MetadataEditor';
 
 export function Step6_Behaviors() {
     const { state, dispatch } = useWizard();
@@ -29,6 +30,18 @@ export function Step6_Behaviors() {
         }
     }, []);
 
+    // Real-time update with debounce
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            // Check for deep equality to avoid loops
+            const currentBehaviors = state.behaviors;
+            if (JSON.stringify(currentBehaviors) !== JSON.stringify(behaviors)) {
+                dispatch({ type: 'SET_BEHAVIORS', payload: behaviors });
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [behaviors, state.behaviors, dispatch]);
+
     const handleAdd = (text: string) => {
         if (behaviors.some(b => b.label.toLowerCase() === text.toLowerCase())) return;
 
@@ -50,8 +63,41 @@ export function Step6_Behaviors() {
         setBehaviors(items);
     };
 
+    const handleUpdateMetadata = (id: string, metadata: Metadata) => {
+        setBehaviors(prev => prev.map(b => {
+            if (b.id === id) {
+                return {
+                    ...b,
+                    description: metadata.description,
+                    tags: metadata.tags
+                };
+            }
+            return b;
+        }));
+    };
+
+    const handleGenerateMetadata = async (id: string, label: string) => {
+        try {
+            console.log('Generating metadata for behavior:', label);
+            const principles = state.principles.map(p => p.label).join(', ');
+            const generated = await AI.generateMetadata('Behavior', label, `Principles: ${principles}`);
+
+            setBehaviors(prev => prev.map(b => {
+                if (b.id === id) {
+                    return {
+                        ...b,
+                        description: generated.description,
+                        tags: generated.tags
+                    };
+                }
+                return b;
+            }));
+        } catch (error) {
+            console.error('Failed to generate metadata:', error);
+        }
+    };
+
     const handleNext = () => {
-        dispatch({ type: 'SET_BEHAVIORS', payload: behaviors });
         dispatch({ type: 'NEXT_STEP' });
     };
 
@@ -112,14 +158,24 @@ export function Step6_Behaviors() {
             onAISuggest={handleAISuggest}
             onMagicFill={handleMagicFill}
             renderItem={(b) => (
-                <div className="flex items-start gap-2 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
-                    <div className="flex-1">
-                        <div className="font-medium text-slate-900 dark:text-slate-100">{b.label}</div>
-                        <SemanticTags text={b.label + ' ' + (b.explanation || '')} maxTags={2} />
+                <div className="flex flex-col p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
+                    <div className="flex items-start gap-2">
+                        <div className="flex-1">
+                            <div className="font-medium text-slate-900 dark:text-slate-100">{b.label}</div>
+                            <SemanticTags text={b.label + ' ' + (b.explanation || '')} maxTags={2} />
+                        </div>
+                        <button onClick={() => handleRemove(b.id)} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700">
+                            <X className="h-4 w-4 text-slate-400" />
+                        </button>
                     </div>
-                    <button onClick={() => handleRemove(b.id)} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700">
-                        <X className="h-4 w-4 text-slate-400" />
-                    </button>
+                    <MetadataEditor
+                        id={b.id}
+                        description={b.description}
+                        tags={b.tags}
+                        onUpdate={(meta) => handleUpdateMetadata(b.id, meta)}
+                        onGenerateWithAI={() => handleGenerateMetadata(b.id, b.label)}
+                        entityType="Behavior"
+                    />
                 </div>
             )}
             getLabel={(b) => b.label}

@@ -88,6 +88,8 @@ export interface OntologyNode {
     type: 'purpose' | 'vision' | 'mission' | 'strategy' | 'value' | 'principle' | 'behavior' | 'goal' | 'role';
     label: string;
     text?: string;
+    description?: string;
+    tags?: string[];
     layer: 'identity' | 'culture' | 'behavior' | 'execution';
     semanticTags: SemanticTag[];
     metadata: {
@@ -184,6 +186,8 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
             type: 'purpose',
             label: 'Purpose',
             text: state.team.teamPurpose,
+            description: state.team.purposeMetadata?.description,
+            tags: state.team.purposeMetadata?.tags,
             layer: 'identity',
             semanticTags: extractSemanticTags(state.team.teamPurpose),
             metadata: { createdAt: state.team.createdAt, source: 'user' }
@@ -196,6 +200,8 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
             type: 'vision',
             label: 'Vision',
             text: state.vision.text,
+            description: state.vision.description,
+            tags: state.vision.tags,
             layer: 'identity',
             semanticTags: extractSemanticTags(state.vision.text),
             metadata: { createdAt: new Date().toISOString(), source: 'user' }
@@ -208,6 +214,8 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
             type: 'mission',
             label: 'Mission',
             text: state.mission.text,
+            description: state.mission.description,
+            tags: state.mission.tags,
             layer: 'identity',
             semanticTags: extractSemanticTags(state.mission.text),
             metadata: { createdAt: new Date().toISOString(), source: 'user' }
@@ -221,6 +229,8 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
             type: 'value',
             label: value.label,
             text: value.explanation,
+            description: value.description,
+            tags: value.tags,
             layer: 'culture',
             semanticTags: extractSemanticTags(value.label + ' ' + value.explanation),
             metadata: { createdAt: new Date().toISOString(), source: value.source }
@@ -232,6 +242,8 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
             id: principle.id,
             type: 'principle',
             label: principle.label,
+            description: principle.description,
+            tags: principle.tags,
             layer: 'culture',
             semanticTags: extractSemanticTags(principle.label),
             metadata: { createdAt: new Date().toISOString(), source: 'user' }
@@ -260,6 +272,8 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
             type: 'behavior',
             label: behavior.label,
             text: behavior.explanation,
+            description: behavior.description,
+            tags: behavior.tags,
             layer: 'behavior',
             semanticTags: extractSemanticTags(behavior.label + ' ' + behavior.explanation),
             metadata: { createdAt: new Date().toISOString(), source: 'user' }
