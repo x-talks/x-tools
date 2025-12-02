@@ -63,22 +63,26 @@ export const EXAMPLE_TEAM: WizardState = {
         {
             id: 'p1',
             label: 'Always validate assumptions with real users before building',
-            derivedFromValues: ['v1', 'v3']
+            derivedFromValues: ['v1', 'v3'],
+            explanation: 'User validation principle'
         },
         {
             id: 'p2',
             label: 'Fail fast, learn faster - every experiment teaches us something',
-            derivedFromValues: ['v2', 'v5']
+            derivedFromValues: ['v2', 'v5'],
+            explanation: 'Rapid learning principle'
         },
         {
             id: 'p3',
             label: 'Share both successes and failures openly to accelerate team learning',
-            derivedFromValues: ['v4', 'v5']
+            derivedFromValues: ['v4', 'v5'],
+            explanation: 'Open sharing principle'
         },
         {
             id: 'p4',
             label: 'Let data guide decisions, but use intuition to ask better questions',
-            derivedFromValues: ['v3', 'v2']
+            derivedFromValues: ['v3', 'v2'],
+            explanation: 'Data-informed decision making'
         },
     ],
     behaviors: [
@@ -194,17 +198,20 @@ export const EXAMPLE_TEAM_2: WizardState = {
         {
             id: 'p1',
             label: 'Treat the platform as a product',
-            derivedFromValues: ['v3']
+            derivedFromValues: ['v3'],
+            explanation: 'Product mindset principle'
         },
         {
             id: 'p2',
             label: 'Automate everything that can be automated',
-            derivedFromValues: ['v2']
+            derivedFromValues: ['v2'],
+            explanation: 'Automation principle'
         },
         {
             id: 'p3',
             label: 'Secure defaults, not secure hurdles',
-            derivedFromValues: ['v4']
+            derivedFromValues: ['v4'],
+            explanation: 'Security principle'
         },
     ],
     behaviors: [

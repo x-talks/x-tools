@@ -46,8 +46,10 @@ export function Step2_Vision() {
         setIsGeneratingAI(true);
         try {
             const response = await AI.suggestVision(
-                state.team?.teamPurpose || '',
-                visionText
+                visionText || '',
+                state.team?.teamPurpose,
+                state.team?.teamName,
+                undefined
             );
             if (response.suggestions && response.suggestions.length > 0) {
                 setAiSuggestions(response.suggestions);

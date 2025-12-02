@@ -222,7 +222,53 @@ export async function suggestWizardContent(
     }
 
     try {
-        const prompt = `You are an AI suggestion engine for Antigravity wizard cards. Your task is to take the exact text from the input window and generate structured, high-quality outputs according to the following rules.
+        let prompt = '';
+        const isGeneration = !userInput || userInput.trim().length < 5;
+
+        if (isGeneration) {
+            // SCENARIO: GENERATE FROM SCRATCH
+            // User hasn't typed much, so we generate ideas based on context
+            prompt = `You are an expert organizational consultant. Generate 3 distinct ${cardName} statements.
+            
+### **Context**
+${context || 'Industry: Technology, Team: General'}
+
+### **Guidelines**
+- **Definition**: ${config.description?.What || ''}
+- **Formula**: "${config.formula}"
+- **Best Practice**: ${config.bestPractice || ''}
+
+### **Task**
+Create 3 high-quality, professional options that strictly follow the formula.
+1. **Option 1**: Standard & Clear
+2. **Option 2**: Aspirational & Bold
+3. **Option 3**: Strategic & Action-Oriented
+
+### **Output Format**
+Return ONLY a JSON object with this structure:
+{
+  "suggestions": [
+    {
+      "type": "Standard",
+      "text": "...",
+      "breakdown": { "part1": "...", "part2": "..." }
+    },
+    {
+      "type": "Aspirational",
+      "text": "...",
+      "breakdown": { "part1": "...", "part2": "..." }
+    },
+    {
+      "type": "Strategic",
+      "text": "...",
+      "breakdown": { "part1": "...", "part2": "..." }
+    }
+  ]
+}`;
+        } else {
+            // SCENARIO: REFINE USER INPUT
+            // User provided text, so we refine and expand on it
+            prompt = `You are an AI suggestion engine for Antigravity wizard cards. Your task is to take the exact text from the input window and generate structured, high-quality outputs according to the following rules.
 
 ### **Context & Guidelines (Reference Only)**
 - **Definition**: ${config.description?.What || ''}
@@ -288,6 +334,7 @@ Return ONLY a JSON object with this structure:
 
 Input Text: "${userInput}"
 ${context ? `Context: ${context}` : ''}`;
+        }
 
         const result = await callGroqAPI(prompt, 'You are an expert in organizational design. Return strictly valid JSON.');
         const parsed = JSON.parse(result);
@@ -314,76 +361,44 @@ ${context ? `Context: ${context}` : ''}`;
     }
 }
 
-export async function suggestPurpose(teamName?: string, industry?: string, userInput?: string): Promise<AIResponse> {
-    if (userInput && userInput.trim().length > 2) {
-        return suggestWizardContent('Purpose', {
-            formula: WIZARD_CONTENT.Purpose.Formula,
-            description: WIZARD_CONTENT.Purpose.Description,
-            bestPractice: WIZARD_CONTENT.Purpose.BestPractice,
-            examples: WIZARD_CONTENT.Purpose.Examples
-        }, userInput);
-    }
-    // Fallback to generating from scratch if no input
-    if (!isGroqConfigured()) return ruleBased_suggestPurpose(teamName, industry);
-
-    // Generate from scratch logic (kept from before but simplified)
-    const prompt = `Generate 3 Purpose statements for a team named "${teamName || 'Team'}" in the "${industry || 'Technology'}" industry. Formula: "${WIZARD_CONTENT.Purpose.Formula}". Return JSON with suggestions array.`;
-    try {
-        const result = await callGroqAPI(prompt, 'You are an expert in organizational design. Return strictly valid JSON.');
-        return JSON.parse(result);
-    } catch (e) { return ruleBased_suggestPurpose(teamName, industry); }
+export async function suggestPurpose(userInput: string, teamName?: string, industry?: string): Promise<AIResponse> {
+    const context = `Team Name: ${teamName || 'General Team'}, Industry: ${industry || 'General'}`;
+    return suggestWizardContent('Purpose', {
+        formula: WIZARD_CONTENT.Purpose.Formula,
+        description: WIZARD_CONTENT.Purpose.Description,
+        bestPractice: WIZARD_CONTENT.Purpose.BestPractice,
+        examples: WIZARD_CONTENT.Purpose.Examples
+    }, userInput, context);
 }
 
-export async function suggestVision(purpose: string, userInput?: string): Promise<AIResponse> {
-    if (userInput && userInput.trim().length > 2) {
-        return suggestWizardContent('Vision', {
-            formula: WIZARD_CONTENT.Vision.Formula,
-            description: WIZARD_CONTENT.Vision.Description,
-            bestPractice: WIZARD_CONTENT.Vision.BestPractice,
-            examples: WIZARD_CONTENT.Vision.Examples
-        }, userInput, `Purpose: ${purpose}`);
-    }
-    // Fallback
-    if (!isGroqConfigured()) return ruleBased_suggestVision(purpose);
-    const prompt = `Generate 3 Vision statements based on Purpose: "${purpose}". Formula: "${WIZARD_CONTENT.Vision.Formula}". Return JSON with suggestions array.`;
-    try {
-        const result = await callGroqAPI(prompt, 'You are a strategic visionary. Return strictly valid JSON.');
-        return JSON.parse(result);
-    } catch (e) { return ruleBased_suggestVision(purpose); }
+export async function suggestVision(userInput: string, purposeContext?: string, teamName?: string, industry?: string): Promise<AIResponse> {
+    const context = `Team Name: ${teamName || 'General Team'}, Industry: ${industry || 'General'}${purposeContext ? `, Purpose: ${purposeContext}` : ''}`;
+    return suggestWizardContent('Vision', {
+        formula: WIZARD_CONTENT.Vision.Formula,
+        description: WIZARD_CONTENT.Vision.Description,
+        bestPractice: WIZARD_CONTENT.Vision.BestPractice,
+        examples: WIZARD_CONTENT.Vision.Examples
+    }, userInput, context);
 }
 
-export async function suggestMission(vision: string, userInput?: string): Promise<AIResponse> {
-    if (userInput && userInput.trim().length > 2) {
-        return suggestWizardContent('Mission', {
-            formula: WIZARD_CONTENT.Mission.Formula,
-            description: WIZARD_CONTENT.Mission.Description,
-            bestPractice: WIZARD_CONTENT.Mission.BestPractice,
-            examples: WIZARD_CONTENT.Mission.Examples
-        }, userInput, `Vision: ${vision}`);
-    }
-    if (!isGroqConfigured()) return ruleBased_suggestMission(vision);
-    const prompt = `Generate 3 Mission statements based on Vision: "${vision}". Formula: "${WIZARD_CONTENT.Mission.Formula}". Return JSON with suggestions array.`;
-    try {
-        const result = await callGroqAPI(prompt, 'You are an operations strategist. Return strictly valid JSON.');
-        return JSON.parse(result);
-    } catch (e) { return ruleBased_suggestMission(vision); }
+export async function suggestMission(userInput: string, visionContext?: string, teamName?: string, industry?: string): Promise<AIResponse> {
+    const context = `Team Name: ${teamName || 'General Team'}, Industry: ${industry || 'General'}${visionContext ? `, Vision: ${visionContext}` : ''}`;
+    return suggestWizardContent('Mission', {
+        formula: WIZARD_CONTENT.Mission.Formula,
+        description: WIZARD_CONTENT.Mission.Description,
+        bestPractice: WIZARD_CONTENT.Mission.BestPractice,
+        examples: WIZARD_CONTENT.Mission.Examples
+    }, userInput, context);
 }
 
-export async function suggestStrategy(mission: string, userInput?: string): Promise<AIResponse> {
-    if (userInput && userInput.trim().length > 2) {
-        return suggestWizardContent('Strategy', {
-            formula: WIZARD_CONTENT.Strategy.Formula,
-            description: WIZARD_CONTENT.Strategy.Description,
-            bestPractice: WIZARD_CONTENT.Strategy.BestPractice,
-            examples: WIZARD_CONTENT.Strategy.Examples
-        }, userInput, `Mission: ${mission}`);
-    }
-    if (!isGroqConfigured()) return ruleBased_suggestStrategy(mission);
-    const prompt = `Generate 3 Strategy statements based on Mission: "${mission}". Formula: "${WIZARD_CONTENT.Strategy.Formula}". Return JSON with suggestions array.`;
-    try {
-        const result = await callGroqAPI(prompt, 'You are a business strategist. Return strictly valid JSON.');
-        return JSON.parse(result);
-    } catch (e) { return ruleBased_suggestStrategy(mission); }
+export async function suggestStrategy(userInput: string, missionContext?: string, teamName?: string, industry?: string): Promise<AIResponse> {
+    const context = `Team Name: ${teamName || 'General Team'}, Industry: ${industry || 'General'}${missionContext ? `, Mission: ${missionContext}` : ''}`;
+    return suggestWizardContent('Strategy', {
+        formula: WIZARD_CONTENT.Strategy.Formula,
+        description: WIZARD_CONTENT.Strategy.Description,
+        bestPractice: WIZARD_CONTENT.Strategy.BestPractice,
+        examples: []
+    }, userInput, context);
 }
 
 export async function suggestValues(purpose?: string, industry?: string): Promise<string[]> {

@@ -140,7 +140,7 @@ export function transformToVisualization(teams: WizardState[]): CombinedVisualiz
                 teamId,
             });
 
-            prin.derivedFromValues.forEach((sourceId) => {
+            prin.derivedFromValues?.forEach((sourceId) => {
                 // Link from Value node
                 edges.push({
                     from: `value-${teamId}-${sourceId}`,
@@ -161,7 +161,7 @@ export function transformToVisualization(teams: WizardState[]): CombinedVisualiz
             });
 
             // Connect from Values
-            beh.derivedFromValuesValues.forEach((valId) => {
+            beh.derivedFromValues?.forEach((valId) => {
                 edges.push({
                     from: `value-${teamId}-${valId}`,
                     to: behNodeId,

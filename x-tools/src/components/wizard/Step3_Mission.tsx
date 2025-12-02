@@ -41,8 +41,10 @@ export function Step3_Mission() {
         setIsGeneratingAI(true);
         try {
             const response = await AI.suggestMission(
-                state.vision?.text || '',
-                mission
+                mission || '',
+                state.vision?.text,
+                state.team?.teamName,
+                undefined
             );
             if (response.suggestions && response.suggestions.length > 0) {
                 setAiSuggestions(response.suggestions);

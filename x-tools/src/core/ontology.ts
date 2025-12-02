@@ -238,7 +238,7 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
         });
 
         // Create relationships: Principle derives from Values
-        principle.derivedFromValues.forEach(valueId => {
+        principle.derivedFromValues?.forEach((valueId: string) => {
             relationships.push({
                 id: `rel-${principle.id}-${valueId}`,
                 sourceId: principle.id,
@@ -266,7 +266,7 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
         });
 
         // Create relationships: Behavior implements Values
-        behavior.derivedFromValuesValues.forEach(valueId => {
+        behavior.derivedFromValues.forEach(valueId => {
             relationships.push({
                 id: `rel-${behavior.id}-${valueId}`,
                 sourceId: behavior.id,

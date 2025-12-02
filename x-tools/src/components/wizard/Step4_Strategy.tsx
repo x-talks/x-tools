@@ -43,8 +43,10 @@ export function Step4_Strategy() {
         setIsGeneratingAI(true);
         try {
             const response = await AI.suggestStrategy(
-                state.mission?.text || '',
-                strategyText
+                strategyText || '',
+                state.mission?.text,
+                state.team?.teamName,
+                undefined
             );
             if (response.suggestions && response.suggestions.length > 0) {
                 setAiSuggestions(response.suggestions);

@@ -33,7 +33,7 @@ export function Step1_Purpose() {
     const handleAISuggest = async () => {
         setIsGeneratingAI(true);
         try {
-            const response = await AI.suggestPurpose(state.team?.teamName, undefined, purpose);
+            const response = await AI.suggestPurpose(purpose || '', state.team?.teamName, undefined);
             if (response.suggestions && response.suggestions.length > 0) {
                 setAiSuggestions(response.suggestions);
                 setIsModalOpen(true);

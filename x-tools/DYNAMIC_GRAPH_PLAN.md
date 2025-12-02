@@ -29,10 +29,10 @@
 ### 🚧 Remaining Work:
 
 ## Phase 1: Fix Build Errors
-- [ ] Add `explanation` field to all `Principle` objects in:
+- [x] Add `explanation` field to all `Principle` objects in:
   - `src/core/exampleTeam.ts`
   - `src/test/*.test.ts` files
-- [ ] Update `ontology.ts` and `visualizer.ts` to use `derivedFromValues`
+- [x] Update `ontology.ts` and `visualizer.ts` to use `derivedFromValues`
 
 ## Phase 2: Real-Time Graph Updates
 - [ ] Create state management for entity metadata
