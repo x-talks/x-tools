@@ -235,6 +235,22 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
             semanticTags: extractSemanticTags(value.label + ' ' + value.explanation),
             metadata: { createdAt: new Date().toISOString(), source: value.source }
         });
+
+        // NEW: Circle -> Value edge (if circle exists)
+        if (state.team?.teamId) {
+            relationships.push({
+                id: `rel-circle-${value.id}`,
+                sourceId: 'circle', // We use 'circle' as a virtual node ID
+                targetId: value.id,
+                sourceType: 'purpose', // Using purpose as proxy for circle
+                targetType: 'value',
+                relationType: RelationType.SUPPORTS,
+                strength: 90,
+                confidence: 100,
+                auto_detected: false,
+                explanation: 'Value supports the Circle'
+            });
+        }
     });
 
     state.principles.forEach(principle => {
@@ -249,20 +265,37 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
             metadata: { createdAt: new Date().toISOString(), source: 'user' }
         });
 
-        // Create relationships: Principle derives from Values
-        principle.derivedFromValues?.forEach((valueId: string) => {
+        // Create relationships: Principle -> Value (using valueId if available, otherwise derivedFromValues)
+        if (principle.valueId) {
+            // NEW: Use explicit valueId if set
             relationships.push({
-                id: `rel-${principle.id}-${valueId}`,
+                id: `rel-${principle.id}-${principle.valueId}`,
                 sourceId: principle.id,
-                targetId: valueId,
+                targetId: principle.valueId,
                 sourceType: 'principle',
                 targetType: 'value',
                 relationType: RelationType.DERIVES_FROM,
-                strength: 80,
+                strength: 90,
                 confidence: 100,
-                auto_detected: false
+                auto_detected: false,
+                explanation: 'Principle derives from Value'
             });
-        });
+        } else if (principle.derivedFromValues && principle.derivedFromValues.length > 0) {
+            // LEGACY: Fall back to derivedFromValues array
+            principle.derivedFromValues.forEach((valueId: string) => {
+                relationships.push({
+                    id: `rel-${principle.id}-${valueId}`,
+                    sourceId: principle.id,
+                    targetId: valueId,
+                    sourceType: 'principle',
+                    targetType: 'value',
+                    relationType: RelationType.DERIVES_FROM,
+                    strength: 80,
+                    confidence: 100,
+                    auto_detected: false
+                });
+            });
+        }
     });
 
     // Add behavior layer
@@ -342,6 +375,82 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
             semanticTags: extractSemanticTags(goal),
             metadata: { createdAt: new Date().toISOString(), source: 'user' }
         });
+    });
+
+    // Add roles (linked to circle)
+    state.roles.forEach((role, index) => {
+        const roleId = `role-${index}`;
+        nodes.push({
+            id: roleId,
+            type: 'role',
+            label: role,
+            layer: 'execution',
+            semanticTags: extractSemanticTags(role),
+            metadata: { createdAt: new Date().toISOString(), source: 'user' }
+        });
+
+        // Circle -> Role edge
+        if (state.team?.teamId) {
+            relationships.push({
+                id: `rel-circle-${roleId}`,
+                sourceId: 'purpose', // Using purpose as proxy for circle
+                targetId: roleId,
+                sourceType: 'purpose',
+                targetType: 'role',
+                relationType: RelationType.REQUIRES,
+                strength: 85,
+                confidence: 100,
+                auto_detected: false,
+                explanation: 'Circle requires this Role'
+            });
+        }
+    });
+
+    // Add people (linked to roles)
+    state.people.forEach(person => {
+        nodes.push({
+            id: person.id,
+            type: 'role', // Using 'role' type as person isn't in the type union yet
+            label: person.name,
+            text: person.role,
+            layer: 'execution',
+            semanticTags: extractSemanticTags(person.name + ' ' + person.role),
+            metadata: { createdAt: new Date().toISOString(), source: 'user' }
+        });
+
+        // Role -> Person edge (if roleId is set)
+        if (person.roleId) {
+            relationships.push({
+                id: `rel-role-${person.id}`,
+                sourceId: person.roleId,
+                targetId: person.id,
+                sourceType: 'role',
+                targetType: 'role', // Using 'role' as proxy for person
+                relationType: RelationType.IMPLEMENTS,
+                strength: 95,
+                confidence: 100,
+                auto_detected: false,
+                explanation: 'Person fulfills this Role'
+            });
+        } else {
+            // Legacy: Try to match by role name
+            const roleIndex = state.roles.findIndex(r => r === person.role);
+            if (roleIndex !== -1) {
+                const roleId = `role-${roleIndex}`;
+                relationships.push({
+                    id: `rel-role-${person.id}`,
+                    sourceId: roleId,
+                    targetId: person.id,
+                    sourceType: 'role',
+                    targetType: 'role',
+                    relationType: RelationType.IMPLEMENTS,
+                    strength: 90,
+                    confidence: 90,
+                    auto_detected: true,
+                    explanation: 'Person fulfills this Role (inferred from name)'
+                });
+            }
+        }
     });
 
     // Add explicit relationships from state

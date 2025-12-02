@@ -159,6 +159,34 @@ export function Step5_Principles() {
                         <div className="flex-1">
                             <div className="font-medium text-slate-900 dark:text-slate-100">{p.label}</div>
                             <SemanticTags text={p.label + ' ' + (p.explanation || '')} maxTags={2} />
+
+                            {/* NEW: Value Selector */}
+                            {state.values.length > 0 && (
+                                <div className="mt-2">
+                                    <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                        Derives from Value:
+                                    </label>
+                                    <select
+                                        value={p.valueId || ''}
+                                        onChange={(e) => {
+                                            const valueId = e.target.value;
+                                            setPrinciples(prev => prev.map(principle =>
+                                                principle.id === p.id
+                                                    ? { ...principle, valueId: valueId || undefined }
+                                                    : principle
+                                            ));
+                                        }}
+                                        className="w-full px-2 py-1 text-sm border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                                    >
+                                        <option value="">-- Select a Value --</option>
+                                        {state.values.map(value => (
+                                            <option key={value.id} value={value.id}>
+                                                {value.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
                         </div>
                         <button onClick={() => handleRemove(p.id)} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700">
                             <X className="h-4 w-4 text-slate-400" />
