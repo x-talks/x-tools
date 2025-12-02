@@ -22,7 +22,7 @@ export function Step5_Principles() {
             setPrinciples(randomPrinciples.map((text, i) => ({
                 id: `prin-${Date.now()}-${i}`,
                 label: text,
-                derivedFrom: [],
+                derivedFromValues: [],
                 explanation: 'Manually added',
                 ruleId: 'MANUAL'
             })));
@@ -35,7 +35,7 @@ export function Step5_Principles() {
         const newPrinciple: Principle = {
             id: `prin-${Date.now()}`,
             label: text.trim(),
-            derivedFrom: [],
+            derivedFromValues: [],
             explanation: 'Manually added',
             ruleId: 'MANUAL'
         };
@@ -60,7 +60,7 @@ export function Step5_Principles() {
         setPrinciples(randomPrinciples.map((text, i) => ({
             id: `prin-${Date.now()}-${i}`,
             label: text,
-            derivedFrom: [],
+            derivedFromValues: [],
             explanation: 'Manually added',
             ruleId: 'MANUAL'
         })));
@@ -77,7 +77,7 @@ export function Step5_Principles() {
             const newPrinciples = suggestions.map((text, i) => ({
                 id: `prin-ai-${Date.now()}-${i}`,
                 label: text,
-                derivedFrom: [],
+                derivedFromValues: [],
                 explanation: 'AI Suggested',
                 ruleId: 'AI'
             }));
@@ -99,7 +99,7 @@ export function Step5_Principles() {
             libraryItems={libraryItems.map((p, i) => ({
                 id: `lib-${i}`,
                 label: p,
-                derivedFrom: [],
+                derivedFromValues: [],
                 explanation: '',
                 ruleId: 'LIBRARY'
             }))}

@@ -1082,14 +1082,16 @@ export function derivePrinciples(values: Value[], _behaviors: Behavior[]): Princ
             principles.push({
                 id: `prin-${val.id}`,
                 label: match,
-                derivedFrom: [val.id]
+                derivedFromValues: [val.id],
+                explanation: `Derived from ${val.label}`
             });
         } else {
             // Fallback generation
             principles.push({
                 id: `prin-${val.id}`,
                 label: `We believe in ${val.label} as a core driver of our success.`,
-                derivedFrom: [val.id]
+                derivedFromValues: [val.id],
+                explanation: `Core principle based on ${val.label}`
             });
         }
     });

@@ -27,13 +27,19 @@ export interface SavedTeam {
 }
 
 export interface Mission {
+    id?: string;
     text: string;
     keywords: string[];
+    description?: string;
+    tags?: string[];
 }
 
 export interface Vision {
+    id?: string;
     text: string;
     archetype: string;
+    description?: string;
+    tags?: string[];
 }
 
 export interface Value {
@@ -50,18 +56,25 @@ export interface Behavior {
     derivedFromValues: string[]; // valueIds
     explanation: string;
     ruleId: string;
+    description?: string;
+    tags?: string[];
 }
 
 export interface Strategy {
+    id?: string;
     text: string;
+    description?: string;
+    tags?: string[];
 }
 
 export interface Principle {
     id: string;
     label: string;
-    derivedFrom: string[]; // valueIds or behaviorIds
-    explanation?: string;
+    derivedFromValues?: string[];
+    explanation: string;
     ruleId?: string;
+    description?: string;
+    tags?: string[];
 }
 
 export enum RelationType {
