@@ -198,6 +198,37 @@ export interface AIResponse {
     suggestions: SuggestionOption[];
 }
 
+// ============================================================================
+// FORMULA PARSING HELPER
+// ============================================================================
+
+/**
+ * Parses formula string to extract labels
+ * Example: "[What We Do] [For Whom] [Ultimate Impact/Inspiration]"
+ * Returns: ["What We Do", "For Whom", "Ultimate Impact/Inspiration"]
+ */
+function parseFormulaLabels(formula: string): string[] {
+    const matches = formula.match(/\[([^\]]+)\]/g);
+    if (!matches) return [];
+    return matches.map(m => m.replace(/[\[\]]/g, ''));
+}
+
+/**
+ * Creates breakdown object with formula labels as keys
+ * Example: { "What We Do": "...", "For Whom": "...", "Ultimate Impact/Inspiration": "..." }
+ */
+function createBreakdownStructure(labels: string[]): string {
+    const obj: Record<string, string> = {};
+    labels.forEach(label => {
+        obj[label] = "...";
+    });
+    return JSON.stringify(obj, null, 2);
+}
+
+// ============================================================================
+// AI-POWERED WIZARD SUGGESTIONS
+// ============================================================================
+
 export async function suggestWizardContent(
     cardName: string,
     config: {
@@ -222,6 +253,10 @@ export async function suggestWizardContent(
     }
 
     try {
+        // Parse formula to get actual labels
+        const formulaLabels = parseFormulaLabels(config.formula);
+        const breakdownExample = createBreakdownStructure(formulaLabels);
+
         let prompt = '';
         const isGeneration = !userInput || userInput.trim().length < 5;
 
@@ -251,17 +286,17 @@ Return ONLY a JSON object with this structure:
     {
       "type": "Standard",
       "text": "...",
-      "breakdown": { "part1": "...", "part2": "..." }
+      "breakdown": ${breakdownExample}
     },
     {
       "type": "Aspirational",
       "text": "...",
-      "breakdown": { "part1": "...", "part2": "..." }
+      "breakdown": ${breakdownExample}
     },
     {
       "type": "Strategic",
       "text": "...",
-      "breakdown": { "part1": "...", "part2": "..." }
+      "breakdown": ${breakdownExample}
     }
   ]
 }`;
@@ -276,16 +311,16 @@ Return ONLY a JSON object with this structure:
 - **Best Practices**: ${config.bestPractice || ''}
 - **Formula**: "${config.formula}"
 
-### **Step 1: Extract Core Purpose**
+### **Step 1: Extract Core ${cardName}**
 Parse the input text into the following structure based on the formula.
 
 ### **Step 2: Generate 4 Examples**
-Produce 4 output examples based on the Core Purpose and parsed exactly into formula:
+Produce 4 output examples based on the Core ${cardName} and parsed exactly into formula:
 
 1. **Simple** – concise, clear, close to original wording.
 2. **Sophisticated** – extend with business or practical context; show added value or impact.
 3. **Generalized** – broad phrasing, relatable to multiple scenarios.
-4. **Creative / Extended** – push boundaries while still linked to original purpose, use advanced reasoning.
+4. **Creative / Extended** – push boundaries while still linked to original ${cardName.toLowerCase()}, use advanced reasoning.
 
 ### **Step 3: Synthesize Best-of Output**
 Combine all examples into a single coherent, polished suggestion. Output should be professional, clear, and directly usable in the wizard card.
@@ -294,40 +329,40 @@ Combine all examples into a single coherent, polished suggestion. Output should 
 - **CRITICAL**: Use the provided context ONLY for understanding the structure and rules. **NEVER** output one of the examples from the dataset directly.
 - Always use **real AI reasoning**, no hardcoded or prefilled statements.
 - Minimize hallucination; stay as close to the input text as possible.
-- Include 3-4 examples, always show the final “best-of” combined version.
+- Include 3-4 examples, always show the final "best-of" combined version.
 - Output should be structured in **readable, copy-pastable format**.
 
 ### **Step 5: Output Format (Template)**
 Return ONLY a JSON object with this structure:
 {
   "coreAnalysis": {
-    "breakdown": { "part1": "...", "part2": "..." }
+    "breakdown": ${breakdownExample}
   },
   "suggestions": [
     {
       "type": "Simple",
       "text": "...",
-      "breakdown": { "part1": "...", "part2": "..." }
+      "breakdown": ${breakdownExample}
     },
     {
       "type": "Sophisticated",
       "text": "...",
-      "breakdown": { "part1": "...", "part2": "..." }
+      "breakdown": ${breakdownExample}
     },
     {
       "type": "Generalized",
       "text": "...",
-      "breakdown": { "part1": "...", "part2": "..." }
+      "breakdown": ${breakdownExample}
     },
     {
       "type": "Creative",
       "text": "...",
-      "breakdown": { "part1": "...", "part2": "..." }
+      "breakdown": ${breakdownExample}
     },
     {
       "type": "Best-of Combined",
       "text": "...",
-      "breakdown": { "part1": "...", "part2": "..." }
+      "breakdown": ${breakdownExample}
     }
   ]
 }
