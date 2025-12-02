@@ -26,7 +26,9 @@ export function OntologyView() {
                 <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">Ontology View</h3>
                 <span className="text-xs text-slate-500">Live Semantic Graph</span>
             </div>
-            <InteractiveGraph className="h-[400px]" />
+            <div className="h-[400px] border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+                <InteractiveGraph />
+            </div>
         </div>
     );
 }

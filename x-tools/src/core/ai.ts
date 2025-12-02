@@ -34,12 +34,19 @@ export function configureGroq(apiKey: string, model: string = GROQ_MODEL) {
 }
 
 export function getGroqApiKey(): string | null {
-    return groqConfig.apiKey || localStorage.getItem('groq_api_key');
+    return groqConfig.apiKey || localStorage.getItem('groq_api_key') || import.meta.env.VITE_GROQ_API_KEY || null;
 }
 
 export function isGroqConfigured(): boolean {
-    const hasKey = !!getGroqApiKey();
-    console.log(`[AI Debug] Checking Groq Configuration: ${hasKey ? 'API Key Present' : 'No API Key Found'}`);
+    const apiKey = getGroqApiKey();
+    const hasKey = !!apiKey;
+
+    let source = 'None';
+    if (groqConfig.apiKey) source = 'Runtime Config';
+    else if (localStorage.getItem('groq_api_key')) source = 'LocalStorage';
+    else if (import.meta.env.VITE_GROQ_API_KEY) source = 'Environment Variable';
+
+    console.log(`[AI Debug] Checking Groq Configuration: ${hasKey ? 'API Key Present' : 'No API Key Found'} (Source: ${source})`);
     return hasKey;
 }
 

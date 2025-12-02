@@ -1,88 +1,102 @@
-import { RelationType } from '../../core/types';
 import { OntologyGraph } from '../../core/ontology';
-import { Options } from 'vis-network';
+import type { Node, Edge, MarkerType } from 'reactflow';
 
-export interface VisNode {
-    id: string;
-    label: string;
-    group: string;
-    title?: string;
-    value?: number;
-    color?: string | { background: string; border: string; highlight?: { background: string; border: string } };
-    shape?: string;
-    font?: { color: string; size?: number; face?: string };
-    borderWidth?: number;
-    shadow?: boolean;
-    x?: number;
-    y?: number;
-}
-
-export interface VisEdge {
-    id: string;
-    from: string;
-    to: string;
-    label?: string;
-    dashes?: boolean;
-    width?: number;
-    color?: { color: string };
-    arrows?: string;
-    font?: { align: string; size: number; color: string; strokeWidth: number };
-    smooth?: { enabled: boolean; type: string; roundness?: number } | boolean;
-}
-
-export const LAYER_COLORS = {
-    identity: { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af' },
-    culture: { bg: '#fce7f3', border: '#ec4899', text: '#9f1239' },
-    behavior: { bg: '#d1fae5', border: '#10b981', text: '#065f46' },
-    execution: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e' },
+// Wizard Stage Colors
+export const WIZARD_STAGE_COLORS: Record<string, { background: string; color: string }> = {
+    Circle: { background: '#FFD700', color: '#000' },
+    Purpose: { background: '#FFA500', color: '#000' },
+    Vision: { background: '#8A2BE2', color: '#fff' },
+    Mission: { background: '#00BFFF', color: '#fff' },
+    Strategy: { background: '#32CD32', color: '#000' },
+    Values: { background: '#FF69B4', color: '#fff' },
+    Principles: { background: '#FF4500', color: '#fff' },
+    Behaviors: { background: '#00CED1', color: '#000' },
+    // Fallback colors for entity types
+    purpose: { background: '#FFA500', color: '#000' },
+    vision: { background: '#8A2BE2', color: '#fff' },
+    mission: { background: '#00BFFF', color: '#fff' },
+    strategy: { background: '#32CD32', color: '#000' },
+    value: { background: '#FF69B4', color: '#fff' },
+    principle: { background: '#FF4500', color: '#fff' },
+    behavior: { background: '#00CED1', color: '#000' },
+    goal: { background: '#FFD700', color: '#000' },
+    role: { background: '#E2E8F0', color: '#000' },
 };
 
-export const NODE_GROUPS = {
-    purpose: { color: LAYER_COLORS.identity, shape: 'hexagon', size: 30 },
-    vision: { color: LAYER_COLORS.identity, shape: 'diamond', size: 25 },
-    mission: { color: LAYER_COLORS.identity, shape: 'dot', size: 25 },
-    strategy: { color: LAYER_COLORS.identity, shape: 'box', size: 20 },
-    value: { color: LAYER_COLORS.culture, shape: 'dot', size: 20 },
-    principle: { color: LAYER_COLORS.culture, shape: 'triangle', size: 15 },
-    behavior: { color: LAYER_COLORS.behavior, shape: 'square', size: 15 },
-    goal: { color: LAYER_COLORS.execution, shape: 'star', size: 20 },
-    role: { color: { bg: '#e2e8f0', border: '#64748b', text: '#0f172a' }, shape: 'ellipse', size: 15 },
-};
+/**
+ * Convert OntologyGraph to React Flow compatible format
+ */
+export function convertOntologyToReactFlow(ontology: OntologyGraph): { nodes: Node[]; edges: Edge[] } {
+    // Create a map to track node positions by type for auto-layout
+    const typeYPositions: Record<string, number> = {
+        purpose: 50,
+        vision: 150,
+        mission: 250,
+        strategy: 350,
+        value: 450,
+        principle: 550,
+        behavior: 650,
+        goal: 750,
+        role: 850
+    };
 
-export function convertOntologyToVis(ontology: OntologyGraph) {
-    const nodes = ontology.nodes.map((node) => {
-        const groupStyle = NODE_GROUPS[node.type as keyof typeof NODE_GROUPS] || { color: { bg: '#ccc', border: '#999', text: '#000' }, shape: 'dot' };
+    const typeXOffsets: Record<string, number> = {};
+
+    const nodes: Node[] = ontology.nodes.map((node) => {
+        const entityType = node.type.charAt(0).toUpperCase() + node.type.slice(1);
+        const styleConfig = WIZARD_STAGE_COLORS[entityType] || WIZARD_STAGE_COLORS[node.type] || { background: '#E2E8F0', color: '#000' };
+
+        // Auto-layout: assign position based on type
+        const yPos = typeYPositions[node.type] || 50;
+        const xOffset = typeXOffsets[node.type] || 0;
+        typeXOffsets[node.type] = xOffset + 300;
 
         return {
             id: node.id,
-            label: node.label.length > 20 ? node.label.substring(0, 20) + '...' : node.label,
-            group: node.type,
-            title: `<b>${node.type.toUpperCase()}</b><br/>${node.text || node.label}`,
-            shape: groupStyle.shape,
-            color: {
-                background: groupStyle.color.bg,
-                border: groupStyle.color.border,
-                highlight: { background: groupStyle.color.border, border: groupStyle.color.text },
+            type: 'default',
+            data: {
+                label: node.label.length > 50 ? node.label.substring(0, 50) + '...' : node.label,
+                content: node.label,
+                description: node.text || node.label,
+                tags: [],
+                entityType: node.type
             },
-            font: { color: groupStyle.color.text, size: 12, face: 'Inter' },
-            borderWidth: 2,
-            shadow: true,
+            position: { x: 100 + xOffset, y: yPos },
+            style: {
+                background: styleConfig.background,
+                color: styleConfig.color,
+                border: '2px solid ' + styleConfig.background,
+                borderRadius: '8px',
+                padding: '10px',
+                fontSize: '12px',
+                fontWeight: 500,
+                minWidth: '200px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }
         };
     });
 
-    const edges = ontology.relationships.map((rel) => {
-        const isConflict = rel.relationType === RelationType.CONFLICTS_WITH;
+    const edges: Edge[] = ontology.relationships.map((rel) => {
+        const isConflict = rel.relationType === 'conflicts_with';
         return {
             id: rel.id,
-            from: rel.sourceId,
-            to: rel.targetId,
-            label: rel.relationType.replace('_', ' '),
-            dashes: rel.auto_detected,
-            width: rel.strength ? rel.strength / 20 : 1,
-            color: { color: isConflict ? '#ef4444' : '#94a3b8' },
-            arrows: 'to',
-            font: { align: 'middle', size: 10, color: '#64748b', strokeWidth: 0 },
-            smooth: { enabled: true, type: 'continuous' },
+            source: rel.sourceId,
+            target: rel.targetId,
+            label: rel.relationType.replace(/_/g, ' '),
+            animated: rel.auto_detected || false,
+            style: {
+                stroke: isConflict ? '#ef4444' : '#94a3b8',
+                strokeWidth: rel.strength ? Math.max(1, rel.strength / 20) : 1,
+                strokeDasharray: rel.auto_detected ? '5,5' : undefined
+            },
+            labelStyle: {
+                fill: '#64748b',
+                fontSize: 10
+            },
+            markerEnd: {
+                type: 'arrow' as MarkerType,
+                color: isConflict ? '#ef4444' : '#94a3b8'
+            }
         };
     });
 
@@ -90,61 +104,26 @@ export function convertOntologyToVis(ontology: OntologyGraph) {
     ontology.conflicts.forEach((conflict) => {
         edges.push({
             id: conflict.id,
-            from: conflict.item1.id,
-            to: conflict.item2.id,
+            source: conflict.item1.id,
+            target: conflict.item2.id,
             label: '⚠️ Conflict',
-            dashes: true,
-            width: 2,
-            color: { color: '#f59e0b' },
-            arrows: 'to;from',
-            font: { align: 'middle', size: 10, color: '#f59e0b', strokeWidth: 0 },
-            smooth: { type: 'curvedCW' },
-        } as any);
+            animated: true,
+            style: {
+                stroke: '#f59e0b',
+                strokeWidth: 2,
+                strokeDasharray: '5,5'
+            },
+            labelStyle: {
+                fill: '#f59e0b',
+                fontSize: 10,
+                fontWeight: 'bold'
+            },
+            markerEnd: {
+                type: 'arrow' as MarkerType,
+                color: '#f59e0b'
+            }
+        });
     });
 
     return { nodes, edges };
 }
-
-export const VIS_OPTIONS: Options = {
-    nodes: {
-        shape: 'dot',
-        size: 16,
-    },
-    edges: {
-        width: 2,
-        smooth: {
-            enabled: true,
-            type: 'continuous',
-            roundness: 0.5,
-        },
-    },
-    physics: {
-        enabled: true,
-        barnesHut: {
-            gravitationalConstant: -2000,
-            centralGravity: 0.3,
-            springLength: 95,
-            springConstant: 0.04,
-            damping: 0.09,
-            avoidOverlap: 0.1,
-        },
-        stabilization: {
-            enabled: true,
-            iterations: 1000,
-            updateInterval: 100,
-            onlyDynamicEdges: false,
-            fit: true,
-        },
-    },
-    interaction: {
-        hover: true,
-        tooltipDelay: 200,
-        multiselect: true,
-        navigationButtons: true,
-        keyboard: true,
-    },
-    layout: {
-        randomSeed: 2, // Consistent layout
-        improvedLayout: true,
-    },
-};
