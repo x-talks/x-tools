@@ -25,7 +25,19 @@ export interface GeneratedLogo {
 }
 
 /**
- * Generate logo using Groq AI to create SVG code directly
+ * AI Design Parameters (what Groq decides)
+ */
+interface AILogoDesign {
+    concept: string; // e.g., "mountain peak", "interconnected nodes", "rising sun"
+    primaryColor: string;
+    secondaryColor: string;
+    accentColor?: string;
+    pattern: 'geometric' | 'organic' | 'minimal' | 'tech' | 'abstract';
+    symbolism: string; // brief explanation
+}
+
+/**
+ * Generate logo using Groq AI to make design decisions
  */
 export async function generateLogoWithAI(
     teamName: string,
@@ -34,47 +46,59 @@ export async function generateLogoWithAI(
 ): Promise<GeneratedLogo> {
     if (AI.isConfigured()) {
         try {
-            const styleHints = values?.length ? `reflecting values: ${values.join(', ')}` : '';
-            const purposeHint = purpose ? `aligned with purpose: ${purpose}` : '';
+            const styleHints = values?.length ? `Team values: ${values.join(', ')}` : '';
+            const purposeHint = purpose ? `Team purpose: ${purpose}` : '';
 
-            const prompt = `Create a professional, modern SVG logo for a team called "${teamName}" ${purposeHint} ${styleHints}.
+            const prompt = `You are a professional logo designer. Design a logo concept for "${teamName}".
 
-Requirements:
-- Output ONLY valid SVG code (no explanations, no markdown)
-- Size: viewBox="0 0 200 200"
-- Use modern design with gradients, shadows, or glows
-- Professional color scheme (2-3 colors)
-- Clean, scalable design
-- Include creative shapes, patterns, or symbols relevant to the team name
+${purposeHint}
+${styleHints}
 
-Generate the complete SVG code now:`;
+Provide a design concept as JSON (no markdown, just JSON):
+{
+  "concept": "brief visual concept (e.g., 'mountain peak symbolizing growth', 'interconnected circles for collaboration')",
+  "primaryColor": "#hexcolor (main brand color)",
+  "secondaryColor": "#hexcolor (complementary color)",
+  "accentColor": "#hexcolor (optional highlight)",
+  "pattern": "geometric|organic|minimal|tech|abstract",
+  "symbolism": "one sentence explaining the design choice"
+}
+
+Design concept:`;
 
             const { default: aiModule } = await import('./ai');
-            const response = await aiModule.callGroqAPI?.(prompt, 'You are an expert SVG designer. Output only valid SVG code.');
+            const response = await aiModule.callGroqAPI?.(prompt, 'You are a professional brand designer. Return only valid JSON.');
 
             if (response) {
-                // Extract SVG from response (remove markdown code blocks if present)
-                let svgCode = response.trim();
-                svgCode = svgCode.replace(/```svg\n?/g, '').replace(/```\n?/g, '').trim();
+                // Clean response
+                let jsonStr = response.trim();
+                jsonStr = jsonStr.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
-                // Validate it's actually SVG
-                if (svgCode.includes('<svg') && svgCode.includes('</svg>')) {
-                    // Extract colors for metadata
-                    const colors = extractColorsFromSVG(svgCode);
+                try {
+                    const design: AILogoDesign = JSON.parse(jsonStr);
+
+                    // Generate SVG from AI design parameters
+                    const svg = generateSVGFromAIDesign(design, teamName);
 
                     return {
-                        svg: svgCode,
+                        svg,
                         style: {
-                            type: 'abstract',
-                            colors: colors,
+                            type: design.pattern === 'geometric' ? 'geometric' : 'abstract',
+                            colors: {
+                                primary: design.primaryColor,
+                                secondary: design.secondaryColor,
+                                accent: design.accentColor
+                            },
                             shape: 'custom'
                         },
-                        description: `AI-generated logo for ${teamName}`
+                        description: design.symbolism
                     };
+                } catch (parseError) {
+                    console.error('Failed to parse AI design:', parseError);
                 }
             }
         } catch (error) {
-            console.error('Groq SVG generation failed, using fallback:', error);
+            console.error('Groq design generation failed, using fallback:', error);
         }
     }
 
@@ -83,24 +107,27 @@ Generate the complete SVG code now:`;
 }
 
 /**
- * Extract color information from SVG code
+ * Generate sophisticated SVG from AI design parameters
  */
-function extractColorsFromSVG(svg: string): { primary: string; secondary: string; accent?: string } {
-    const colorRegex = /#[0-9A-Fa-f]{6}/g;
-    const matches = svg.match(colorRegex);
+function generateSVGFromAIDesign(design: AILogoDesign, teamName: string): string {
+    const size = 200;
+    const center = size / 2;
+    const firstLetter = teamName.charAt(0).toUpperCase();
 
-    if (matches && matches.length >= 2) {
-        return {
-            primary: matches[0],
-            secondary: matches[1],
-            accent: matches[2]
-        };
+    // Choose template based on pattern
+    switch (design.pattern) {
+        case 'geometric':
+            return generateGeometricFromDesign(size, center, design);
+        case 'tech':
+            return generateTechFromDesign(size, center, design);
+        case 'minimal':
+            return generateMinimalFromDesign(size, center, design, firstLetter);
+        case 'organic':
+            return generateOrganicFromDesign(size, center, design);
+        case 'abstract':
+        default:
+            return generateAbstractFromDesign(size, center, design);
     }
-
-    return {
-        primary: '#3b82f6',
-        secondary: '#1e40af'
-    };
 }
 
 /**
@@ -123,6 +150,117 @@ function generateLogoRuleBased(teamName: string, values?: string[]): GeneratedLo
         style,
         description: `Letter-based logo using the initial "${firstLetter}" with a professional color scheme`
     };
+}
+
+/**
+ * Parametric templates using AI design parameters
+ */
+function generateGeometricFromDesign(size: number, center: number, design: AILogoDesign): string {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
+        <defs>
+            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:${design.primaryColor};stop-opacity:1" />
+                <stop offset="100%" style="stop-color:${design.secondaryColor};stop-opacity:1" />
+            </linearGradient>
+            <filter id="shadow">
+                <feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.25"/>
+            </filter>
+        </defs>
+        <circle cx="${center}" cy="${center}" r="${center - 10}" fill="url(#grad1)" filter="url(#shadow)"/>
+        <polygon points="${center},40 ${center + 50},${center} ${center},${size - 40} ${center - 50},${center}" 
+                 fill="white" opacity="0.15"/>
+        <circle cx="${center}" cy="${center}" r="${center - 35}" fill="none" stroke="white" stroke-width="2" opacity="0.3"/>
+        ${design.accentColor ? `<circle cx="${center}" cy="${center}" r="${center - 55}" fill="${design.accentColor}" opacity="0.2"/>` : ''}
+    </svg>`;
+}
+
+function generateTechFromDesign(size: number, center: number, design: AILogoDesign): string {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
+        <defs>
+            <linearGradient id="techGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:${design.primaryColor};stop-opacity:1" />
+                <stop offset="100%" style="stop-color:${design.secondaryColor};stop-opacity:1" />
+            </linearGradient>
+            <filter id="glow">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+        <rect x="0" y="0" width="${size}" height="${size}" rx="45" fill="url(#techGrad)"/>
+        <circle cx="60" cy="60" r="20" fill="white" opacity="0.9" filter="url(#glow)"/>
+        <circle cx="140" cy="60" r="20" fill="white" opacity="0.9" filter="url(#glow)"/>
+        <circle cx="${center}" cy="140" r="20" fill="white" opacity="0.9" filter="url(#glow)"/>
+        <line x1="60" y1="60" x2="140" y2="60" stroke="white" stroke-width="5" opacity="0.6"/>
+        <line x1="60" y1="60" x2="${center}" y2="140" stroke="white" stroke-width="5" opacity="0.6"/>
+        <line x1="140" y1="60" x2="${center}" y2="140" stroke="white" stroke-width="5" opacity="0.6"/>
+        ${design.accentColor ? `<circle cx="${center}" cy="${center}" r="15" fill="${design.accentColor}" opacity="0.8"/>` : ''}
+    </svg>`;
+}
+
+function generateMinimalFromDesign(size: number, center: number, design: AILogoDesign, letter: string): string {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
+        <defs>
+            <linearGradient id="minGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:${design.primaryColor};stop-opacity:1" />
+                <stop offset="50%" style="stop-color:${design.secondaryColor};stop-opacity:1" />
+                <stop offset="100%" style="stop-color:${design.primaryColor};stop-opacity:0.8" />
+            </linearGradient>
+        </defs>
+        <circle cx="${center}" cy="${center}" r="${center - 15}" fill="url(#minGrad)"/>
+        <text x="${center}" y="${center}" 
+              text-anchor="middle" 
+              dominant-baseline="middle" 
+              font-family="system-ui, -apple-system, sans-serif" 
+              font-size="100" 
+              font-weight="300" 
+              fill="white" 
+              opacity="0.95">${letter}</text>
+        ${design.accentColor ? `<circle cx="${center}" cy="${center}" r="${center - 25}" fill="none" stroke="${design.accentColor}" stroke-width="3" opacity="0.4"/>` : ''}
+    </svg>`;
+}
+
+function generateOrganicFromDesign(size: number, center: number, design: AILogoDesign): string {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
+        <defs>
+            <radialGradient id="orgGrad">
+                <stop offset="0%" style="stop-color:${design.primaryColor};stop-opacity:1" />
+                <stop offset="100%" style="stop-color:${design.secondaryColor};stop-opacity:1" />
+            </radialGradient>
+        </defs>
+        <circle cx="${center}" cy="${center}" r="${center - 10}" fill="url(#orgGrad)"/>
+        <path d="M 60,${center} Q ${center},40 140,${center} T 140,140 Q ${center},180 60,140 T 60,${center} Z" 
+              fill="white" opacity="0.2"/>
+        <circle cx="${center - 30}" cy="${center - 30}" r="25" fill="white" opacity="0.15"/>
+        <circle cx="${center + 30}" cy="${center + 20}" r="20" fill="white" opacity="0.12"/>
+        ${design.accentColor ? `<circle cx="${center}" cy="${center + 35}" r="18" fill="${design.accentColor}" opacity="0.25"/>` : ''}
+    </svg>`;
+}
+
+function generateAbstractFromDesign(size: number, center: number, design: AILogoDesign): string {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
+        <defs>
+            <linearGradient id="absGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:${design.primaryColor};stop-opacity:1" />
+                <stop offset="50%" style="stop-color:${design.secondaryColor};stop-opacity:1" />
+                <stop offset="100%" style="stop-color:${design.primaryColor};stop-opacity:0.7" />
+            </linearGradient>
+            <radialGradient id="absGrad2">
+                <stop offset="0%" style="stop-color:white;stop-opacity:0.5" />
+                <stop offset="100%" style="stop-color:white;stop-opacity:0" />
+            </radialGradient>
+        </defs>
+        <circle cx="${center}" cy="${center}" r="${center - 10}" fill="url(#absGrad1)"/>
+        <circle cx="${center}" cy="${center}" r="${center - 10}" fill="url(#absGrad2)"/>
+        <path d="M 70,70 Q ${center},50 130,70 T 130,130 Q ${center},150 70,130 T 70,70 Z" 
+              fill="white" opacity="0.2"/>
+        <circle cx="${center}" cy="${center - 25}" r="18" fill="white" opacity="0.25"/>
+        <circle cx="${center + 30}" cy="${center + 20}" r="15" fill="white" opacity="0.2"/>
+        <circle cx="${center - 30}" cy="${center + 20}" r="12" fill="white" opacity="0.15"/>
+        ${design.accentColor ? `<circle cx="${center}" cy="${center}" r="8" fill="${design.accentColor}" opacity="0.6"/>` : ''}
+    </svg>`;
 }
 
 /**
@@ -293,88 +431,99 @@ export async function generateLogoVariations(
 ): Promise<GeneratedLogo[]> {
     const variations: GeneratedLogo[] = [];
 
-    // If AI is configured, generate multiple AI variations with different styles
+    // If AI is configured, generate AI-guided variations
     if (AI.isConfigured()) {
-        const styles = [
-            { type: 'modern minimalist', description: 'Clean and minimal design' },
-            { type: 'geometric abstract', description: 'Geometric patterns and shapes' },
-            { type: 'gradient modern', description: 'Vibrant gradients and modern aesthetics' },
-            { type: 'tech-inspired', description: 'Technology and innovation themed' }
-        ];
+        // Try to generate one AI-guided logo
+        const aiLogo = await generateLogoWithAI(teamName, purpose, values);
+        variations.push(aiLogo);
 
-        for (const style of styles) {
-            try {
-                const styleHints = values?.length ? `reflecting values: ${values.join(', ')}` : '';
-                const purposeHint = purpose ? `aligned with purpose: ${purpose}` : '';
+        // If successful, generate 3 more with different pattern hints
+        if (aiLogo.description !== 'Letter-based logo using the initial') {
+            const patterns: Array<'geometric' | 'tech' | 'minimal' | 'organic'> = ['geometric', 'tech', 'minimal'];
 
-                const prompt = `Create a ${style.type} SVG logo for "${teamName}" ${purposeHint} ${styleHints}.
+            for (const pattern of patterns) {
+                try {
+                    const styleHints = values?.length ? `Team values: ${values.join(', ')}` : '';
+                    const purposeHint = purpose ? `Team purpose: ${purpose}` : '';
 
-Requirements:
-- Output ONLY valid SVG code (no explanations)
-- Size: viewBox="0 0 200 200"
-- Style: ${style.type}
-- Professional color scheme
-- Clean, scalable design
+                    const prompt = `You are a professional logo designer. Design a ${pattern} style logo concept for "${teamName}".
 
-SVG code:`;
+${purposeHint}
+${styleHints}
 
-                const { default: aiModule } = await import('./ai');
-                const response = await aiModule.callGroqAPI?.(prompt, 'You are an expert SVG designer. Output only valid SVG code.');
+Provide a design concept as JSON (no markdown, just JSON):
+{
+  "concept": "brief visual concept",
+  "primaryColor": "#hexcolor",
+  "secondaryColor": "#hexcolor",
+  "accentColor": "#hexcolor",
+  "pattern": "${pattern}",
+  "symbolism": "one sentence explaining the design"
+}
 
-                if (response) {
-                    let svgCode = response.trim();
-                    svgCode = svgCode.replace(/```svg\n?/g, '').replace(/```\n?/g, '').trim();
+Design concept:`;
 
-                    if (svgCode.includes('<svg') && svgCode.includes('</svg>')) {
-                        const colors = extractColorsFromSVG(svgCode);
+                    const { default: aiModule } = await import('./ai');
+                    const response = await aiModule.callGroqAPI?.(prompt, 'You are a professional brand designer. Return only valid JSON.');
+
+                    if (response) {
+                        let jsonStr = response.trim();
+                        jsonStr = jsonStr.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+                        const design: AILogoDesign = JSON.parse(jsonStr);
+                        const svg = generateSVGFromAIDesign(design, teamName);
+
                         variations.push({
-                            svg: svgCode,
+                            svg,
                             style: {
-                                type: 'abstract',
-                                colors: colors,
+                                type: design.pattern === 'geometric' ? 'geometric' : 'abstract',
+                                colors: {
+                                    primary: design.primaryColor,
+                                    secondary: design.secondaryColor,
+                                    accent: design.accentColor
+                                },
                                 shape: 'custom'
                             },
-                            description: style.description
+                            description: design.symbolism
                         });
                     }
+                } catch (error) {
+                    console.error(`Failed to generate ${pattern} variation:`, error);
                 }
-            } catch (error) {
-                console.error(`Failed to generate ${style.type} variation:`, error);
             }
         }
     }
 
     // If we got AI variations, return them
-    if (variations.length > 0) {
+    if (variations.length >= 4) {
         return variations;
     }
 
-    // Fallback: Add rule-based variations with different styles
+    // Fallback: Add rule-based variations
     const colors = selectColorsFromValues(values);
 
-    // Letter-based
-    variations.push(generateLogoRuleBased(teamName, values));
+    // Ensure we have at least 4 variations
+    if (variations.length === 0) {
+        variations.push(generateLogoRuleBased(teamName, values));
+    }
 
-    // Geometric variation
     variations.push({
         svg: generateGeometricLogo(200, 100, { type: 'geometric', colors, shape: 'circle' }),
         style: { type: 'geometric', colors, shape: 'circle' },
         description: 'Geometric pattern with modern aesthetics'
     });
 
-    // Icon variation
     variations.push({
         svg: generateIconLogo(200, { type: 'icon', colors, shape: 'square' }),
         style: { type: 'icon', colors, shape: 'square' },
         description: 'Network icon representing connectivity and collaboration'
     });
 
-    // Abstract variation
     variations.push({
         svg: generateAbstractLogo(200, 100, { type: 'abstract', colors, shape: 'circle' }),
         style: { type: 'abstract', colors, shape: 'circle' },
         description: 'Abstract flowing design with gradient'
     });
 
-    return variations;
+    return variations.slice(0, 4); // Return exactly 4 variations
 }

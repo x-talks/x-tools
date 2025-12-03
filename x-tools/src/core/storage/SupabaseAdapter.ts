@@ -57,8 +57,10 @@ export class SupabaseAdapter implements StorageAdapter {
                 .upsert({
                     id: savedTeam.id,
                     name: savedTeam.name,
+                    logo: state.team?.logo || null,
+                    state: savedTeam.state,
                     updated_at: savedTeam.updatedAt,
-                    state: savedTeam.state
+                    created_by: state.team?.createdBy || 'user'
                 });
 
             if (error) {
@@ -132,8 +134,11 @@ export class SupabaseAdapter implements StorageAdapter {
                         .insert({
                             id: exampleSaved.id,
                             name: exampleSaved.name,
+                            logo: example.team?.logo || null,
+                            state: exampleSaved.state,
+                            created_at: new Date().toISOString(),
                             updated_at: exampleSaved.updatedAt,
-                            state: exampleSaved.state
+                            created_by: 'system'
                         });
 
                     if (error) {
