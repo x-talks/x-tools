@@ -25,7 +25,7 @@ export interface GeneratedLogo {
 }
 
 /**
- * Generate logo suggestions using AI
+ * Generate logo using Groq AI to create SVG code directly
  */
 export async function generateLogoWithAI(
     teamName: string,
@@ -34,48 +34,73 @@ export async function generateLogoWithAI(
 ): Promise<GeneratedLogo> {
     if (AI.isConfigured()) {
         try {
-            const prompt = `Based on this team information:
-Team Name: "${teamName}"
-${purpose ? `Purpose: "${purpose}"` : ''}
-${values?.length ? `Values: ${values.join(', ')}` : ''}
+            const styleHints = values?.length ? `reflecting values: ${values.join(', ')}` : '';
+            const purposeHint = purpose ? `aligned with purpose: ${purpose}` : '';
 
-Suggest a logo design. Return ONLY a JSON object:
-{
-  "type": "geometric|abstract|letter|icon",
-  "colors": {
-    "primary": "#hexcolor",
-    "secondary": "#hexcolor"
-  },
-  "shape": "circle|square|hexagon|shield",
-  "symbolType": "brief description of symbol/icon (e.g., mountain, rocket, network)",
-  "description": "one sentence explaining the design choice"
-}`;
+            const prompt = `Create a professional, modern SVG logo for a team called "${teamName}" ${purposeHint} ${styleHints}.
+
+Requirements:
+- Output ONLY valid SVG code (no explanations, no markdown)
+- Size: viewBox="0 0 200 200"
+- Use modern design with gradients, shadows, or glows
+- Professional color scheme (2-3 colors)
+- Clean, scalable design
+- Include creative shapes, patterns, or symbols relevant to the team name
+
+Generate the complete SVG code now:`;
 
             const { default: aiModule } = await import('./ai');
-            const response = await aiModule.callGroqAPI?.(prompt, 'You are a professional brand designer.');
+            const response = await aiModule.callGroqAPI?.(prompt, 'You are an expert SVG designer. Output only valid SVG code.');
 
             if (response) {
-                const suggestion = JSON.parse(response);
-                const svg = generateSVGFromStyle({
-                    type: suggestion.type,
-                    colors: suggestion.colors,
-                    shape: suggestion.shape,
-                    symbolType: suggestion.symbolType
-                }, teamName);
+                // Extract SVG from response (remove markdown code blocks if present)
+                let svgCode = response.trim();
+                svgCode = svgCode.replace(/```svg\n?/g, '').replace(/```\n?/g, '').trim();
 
-                return {
-                    svg,
-                    style: suggestion,
-                    description: suggestion.description
-                };
+                // Validate it's actually SVG
+                if (svgCode.includes('<svg') && svgCode.includes('</svg>')) {
+                    // Extract colors for metadata
+                    const colors = extractColorsFromSVG(svgCode);
+
+                    return {
+                        svg: svgCode,
+                        style: {
+                            type: 'abstract',
+                            colors: colors,
+                            shape: 'custom'
+                        },
+                        description: `AI-generated logo for ${teamName}`
+                    };
+                }
             }
         } catch (error) {
-            console.error('AI logo generation failed, using fallback:', error);
+            console.error('Groq SVG generation failed, using fallback:', error);
         }
     }
 
     // Fallback to rule-based generation
     return generateLogoRuleBased(teamName, values);
+}
+
+/**
+ * Extract color information from SVG code
+ */
+function extractColorsFromSVG(svg: string): { primary: string; secondary: string; accent?: string } {
+    const colorRegex = /#[0-9A-Fa-f]{6}/g;
+    const matches = svg.match(colorRegex);
+
+    if (matches && matches.length >= 2) {
+        return {
+            primary: matches[0],
+            secondary: matches[1],
+            accent: matches[2]
+        };
+    }
+
+    return {
+        primary: '#3b82f6',
+        secondary: '#1e40af'
+    };
 }
 
 /**
@@ -268,12 +293,67 @@ export async function generateLogoVariations(
 ): Promise<GeneratedLogo[]> {
     const variations: GeneratedLogo[] = [];
 
-    // Try AI-generated logo
-    const aiLogo = await generateLogoWithAI(teamName, purpose, values);
-    variations.push(aiLogo);
+    // If AI is configured, generate multiple AI variations with different styles
+    if (AI.isConfigured()) {
+        const styles = [
+            { type: 'modern minimalist', description: 'Clean and minimal design' },
+            { type: 'geometric abstract', description: 'Geometric patterns and shapes' },
+            { type: 'gradient modern', description: 'Vibrant gradients and modern aesthetics' },
+            { type: 'tech-inspired', description: 'Technology and innovation themed' }
+        ];
 
-    // Add rule-based variations with different styles
+        for (const style of styles) {
+            try {
+                const styleHints = values?.length ? `reflecting values: ${values.join(', ')}` : '';
+                const purposeHint = purpose ? `aligned with purpose: ${purpose}` : '';
+
+                const prompt = `Create a ${style.type} SVG logo for "${teamName}" ${purposeHint} ${styleHints}.
+
+Requirements:
+- Output ONLY valid SVG code (no explanations)
+- Size: viewBox="0 0 200 200"
+- Style: ${style.type}
+- Professional color scheme
+- Clean, scalable design
+
+SVG code:`;
+
+                const { default: aiModule } = await import('./ai');
+                const response = await aiModule.callGroqAPI?.(prompt, 'You are an expert SVG designer. Output only valid SVG code.');
+
+                if (response) {
+                    let svgCode = response.trim();
+                    svgCode = svgCode.replace(/```svg\n?/g, '').replace(/```\n?/g, '').trim();
+
+                    if (svgCode.includes('<svg') && svgCode.includes('</svg>')) {
+                        const colors = extractColorsFromSVG(svgCode);
+                        variations.push({
+                            svg: svgCode,
+                            style: {
+                                type: 'abstract',
+                                colors: colors,
+                                shape: 'custom'
+                            },
+                            description: style.description
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error(`Failed to generate ${style.type} variation:`, error);
+            }
+        }
+    }
+
+    // If we got AI variations, return them
+    if (variations.length > 0) {
+        return variations;
+    }
+
+    // Fallback: Add rule-based variations with different styles
     const colors = selectColorsFromValues(values);
+
+    // Letter-based
+    variations.push(generateLogoRuleBased(teamName, values));
 
     // Geometric variation
     variations.push({
