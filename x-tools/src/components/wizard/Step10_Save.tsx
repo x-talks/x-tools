@@ -49,16 +49,43 @@ export function Step10_Save({ }: Step8Props) {
 
     const handleSave = async () => {
         setSaveError(null);
+
+        // Optimistic Update: Assume success immediately
+        const optimisticTime = new Date().toLocaleTimeString();
+        setLastSaved(optimisticTime);
+
+        // Optimistically add/update the team in the list
+        const optimisticTeam: SavedTeam = {
+            id: state.team?.teamId || 'temp-id',
+            name: state.team?.teamName || 'Untitled',
+            updatedAt: new Date().toISOString(),
+            state: state
+        };
+
+        setSavedTeams(prev => {
+            const exists = prev.find(t => t.id === optimisticTeam.id);
+            if (exists) {
+                return prev.map(t => t.id === optimisticTeam.id ? optimisticTeam : t);
+            }
+            return [optimisticTeam, ...prev];
+        });
+
+        // Perform actual save
         const result = await saveTeam(state);
 
         if (result.success) {
-            setLastSaved(new Date().toLocaleTimeString());
+            // Confirm success
             const teams = await getSavedTeams();
             setSavedTeams(teams);
             // Navigate to Export/Canvas overview after saving
             dispatch({ type: 'GO_TO_STEP', payload: 10 });
         } else {
+            // Rollback on error
             setSaveError(result.error || 'Failed to save team');
+            setLastSaved(null); // Clear success message
+            // Revert list
+            const teams = await getSavedTeams();
+            setSavedTeams(teams);
         }
     };
 

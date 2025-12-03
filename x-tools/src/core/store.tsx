@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext } from 'react';
 import type { WizardState, Team, Mission, Vision, Value, Behavior, Principle, AuditLogEntry, Role, Person, Strategy, SemanticRelationship } from './types';
+import { useHistory } from '../hooks/useHistory';
 
 const initialState: WizardState = {
     team: null,
@@ -94,13 +95,35 @@ export function wizardReducer(state: WizardState, action: Action): WizardState {
 const WizardContext = createContext<{
     state: WizardState;
     dispatch: React.Dispatch<Action>;
+    undo: () => void;
+    redo: () => void;
+    canUndo: boolean;
+    canRedo: boolean;
 } | undefined>(undefined);
 
 export function WizardProvider({ children }: { children: ReactNode }) {
-    const [state, dispatch] = useReducer(wizardReducer, initialState);
+    // Import useHistory dynamically to avoid circular dependencies if any, 
+    // but here we can just assume it's available or import at top level.
+    // For now, I'll use the hook logic directly or import it.
+    // Let's assume import is added at top.
+
+    // We need to use the reducer logic but managed by history
+    // Since useHistory manages the state, we need to bridge them.
+
+    const { state, set, undo, redo, canUndo, canRedo, reset } = useHistory(initialState);
+
+    const dispatch = (action: Action) => {
+        if (action.type === 'RESET') {
+            reset(initialState);
+            return;
+        }
+
+        const newState = wizardReducer(state, action);
+        set(newState);
+    };
 
     return (
-        <WizardContext.Provider value={{ state, dispatch }}>
+        <WizardContext.Provider value={{ state, dispatch, undo, redo, canUndo, canRedo }}>
             {children}
         </WizardContext.Provider>
     );

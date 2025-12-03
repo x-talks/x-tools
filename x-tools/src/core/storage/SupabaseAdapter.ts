@@ -1,4 +1,4 @@
-import { WizardState, SavedTeam } from '../types';
+import { WizardState, SavedTeam, SaveResult } from '../types';
 import { StorageAdapter } from './types';
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
@@ -34,7 +34,19 @@ export class SupabaseAdapter implements StorageAdapter {
         }
     }
 
-    async saveTeam(state: WizardState): Promise<{ success: boolean; savedTeam?: SavedTeam; error?: string }> {
+    async saveTeam(state: WizardState): Promise<SaveResult> {
+        // Validate team data
+        const { validateWizardState } = await import('../validation');
+        const validation = validateWizardState(state);
+
+        if (!validation.success) {
+            console.error('Validation errors:', validation.error.format());
+            return {
+                success: false,
+                error: `Validation failed: ${validation.error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`
+            };
+        }
+
         // Relaxed validation for saving: only require name
         if (!state.team?.teamName) {
             return {

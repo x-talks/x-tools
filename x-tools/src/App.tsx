@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Layout } from './components/Layout';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { WizardProvider, useWizard } from './core/store';
 import { Stepper } from './components/ui/Stepper';
 import { Step0_CreateTeam } from './components/wizard/Step0_CreateTeam';
@@ -38,7 +39,7 @@ const STEPS = [
 ];
 
 function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
-  const { state, dispatch } = useWizard();
+  const { state, dispatch, undo, redo } = useWizard();
   const [isGraphPanelOpen, setIsGraphPanelOpen] = useState(false);
 
   const handleStepClick = (index: number) => {
@@ -48,6 +49,8 @@ function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
   useKeyboardShortcuts({
     save: () => { },
     search: () => { },
+    undo: () => undo(),
+    redo: () => redo(),
     next: () => {
       if (state.currentStep < STEPS.length - 1) {
         dispatch({ type: 'NEXT_STEP' });
@@ -162,7 +165,9 @@ function AppWrapper() {
     <ThemeProvider>
       <WizardProvider>
         <Layout>
-          <MainContent />
+          <ErrorBoundary>
+            <MainContent />
+          </ErrorBoundary>
         </Layout>
       </WizardProvider>
     </ThemeProvider>

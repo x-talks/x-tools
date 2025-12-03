@@ -31,6 +31,16 @@ export function useKeyboardShortcuts(handlers: Record<string, KeyHandler>) {
                     handlers['search']?.(event);
                 }
             }
+            // Ctrl/Cmd + Z → Undo
+            else if (modKey && event.key === 'z' && !event.shiftKey) {
+                event.preventDefault();
+                handlers['undo']?.(event);
+            }
+            // Ctrl/Cmd + Shift + Z → Redo
+            else if (modKey && event.key === 'z' && event.shiftKey) {
+                event.preventDefault();
+                handlers['redo']?.(event);
+            }
         };
 
         window.addEventListener('keydown', handleKeyDown);

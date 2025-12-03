@@ -31,6 +31,12 @@ export interface SavedTeam {
     state: WizardState;
 }
 
+export interface SaveResult {
+    success: boolean;
+    savedTeam?: SavedTeam;
+    error?: string;
+}
+
 export interface Mission {
     id?: string;
     visionId?: string; // Linked to Vision

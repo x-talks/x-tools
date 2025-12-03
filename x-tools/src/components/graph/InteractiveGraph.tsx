@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import ReactFlow, {
     MiniMap,
     Controls,
@@ -42,8 +42,21 @@ export function InteractiveGraph() {
     const [rfInstance, setRfInstance] = useState<any>(null);
 
     // Build ontology and convert to React Flow format
+    // Build ontology and convert to React Flow format
+    const ontology = useMemo(() => buildOntologyGraph(state), [
+        state.team,
+        state.vision,
+        state.mission,
+        state.strategy,
+        state.values,
+        state.principles,
+        state.behaviors,
+        state.goals,
+        state.roles,
+        state.people
+    ]);
+
     useEffect(() => {
-        const ontology = buildOntologyGraph(state);
         const { nodes: flowNodes, edges: flowEdges } = convertOntologyToReactFlow(ontology);
 
         // Restore saved positions if available
@@ -59,7 +72,7 @@ export function InteractiveGraph() {
 
         setEdges(flowEdges);
         setIsInitialized(true);
-    }, [state.team, state.vision, state.mission, state.strategy, state.values, state.principles, state.behaviors, state.goals, setNodes, setEdges]);
+    }, [ontology, state.graphLayout?.positions, setNodes, setEdges]);
 
     // Save node positions when they change
     const handleNodeDragStop = useCallback(() => {
