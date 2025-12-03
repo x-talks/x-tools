@@ -8,6 +8,7 @@ import { Download, Save, Upload, Trash2, Search as SearchIcon } from 'lucide-rea
 import { SavedTeam } from '../../core/types';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useAutoSave } from '../../hooks/useAutoSave';
+import { LogoGenerator } from '../LogoGenerator';
 
 interface Step8Props {
     // onViewHome?: () => void; // Removed as per instruction
@@ -192,6 +193,28 @@ export function Step10_Save({ }: Step8Props) {
                                 <span className="font-semibold">{state.team?.teamName || 'Untitled'}</span>
                                 {lastSaved && <span className="text-xs text-green-600">Saved at {lastSaved}</span>}
                             </div>
+
+                            <div className="border-t border-slate-200 pt-4 pb-4">
+                                <LogoGenerator
+                                    teamName={state.team?.teamName || ''}
+                                    context={{
+                                        purpose: state.team?.teamPurpose,
+                                        vision: state.vision?.text,
+                                        mission: state.mission?.text,
+                                        values: state.values.map(v => v.label),
+                                        principles: state.principles.map(p => p.label)
+                                    }}
+                                    onSelect={(logo: string) => {
+                                        if (state.team) {
+                                            dispatch({
+                                                type: 'SET_TEAM',
+                                                payload: { ...state.team, logo }
+                                            });
+                                        }
+                                    }}
+                                />
+                            </div>
+
                             <div className="flex flex-col gap-2">
                                 <Button onClick={handleSave} className="w-full">
                                     <Save className="mr-2 h-4 w-4" /> Save Team
