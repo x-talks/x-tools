@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS role (
 -- "people: Linked to role (1:N)" implies Person table has role_id
 CREATE TABLE IF NOT EXISTS person (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    role_id UUID REFERENCES role(id) ON DELETE CASCADE,
+    role_id UUID NOT NULL REFERENCES role(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     email TEXT,
     picture TEXT,

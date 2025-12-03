@@ -3,22 +3,22 @@ import { useWizard } from '../../core/store';
 import { WIZARD_CONTENT } from '../../core/rules';
 import { WizardTextLayout } from './WizardTextLayout';
 import { useLibrary } from '../../hooks/useLibrary';
+import { useSyncedState } from '../../hooks/useSyncedState';
 import AI, { SuggestionOption } from '../../core/ai';
 import { AISuggestionModal } from '../AISuggestionModal';
 import { MetadataEditor, Metadata } from '../MetadataEditor';
 
 export function Step1_Purpose() {
     const { state, dispatch } = useWizard();
-    const [purpose, setPurpose] = useState(state.team?.teamPurpose || '');
+    const [purpose, setPurpose] = useSyncedState(state.team?.teamPurpose, '');
     const [isGeneratingAI, setIsGeneratingAI] = useState(false);
     const [aiSuggestions, setAiSuggestions] = useState<SuggestionOption[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const [metadata, setMetadata] = useState<Metadata>({
-        id: 'purpose-1',
-        description: state.team?.purposeMetadata?.description || '',
-        tags: state.team?.purposeMetadata?.tags || []
-    });
+    const [metadata, setMetadata] = useSyncedState(
+        state.team?.purposeMetadata,
+        { id: 'purpose-1', description: '', tags: [] }
+    );
 
     const { items: libraryItems, addToLibrary } = useLibrary('purpose', [...WIZARD_CONTENT.Purpose.Examples, ...(WIZARD_CONTENT.Purpose.Statements || [])]);
 
