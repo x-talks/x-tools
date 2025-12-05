@@ -1,5 +1,8 @@
 import { X } from 'lucide-react';
 import { InteractiveGraph } from './graph/InteractiveGraph';
+import { PresenceIndicator } from './PresenceIndicator';
+import { useCollaboration } from '../hooks/useCollaboration';
+import { useWizard } from '../core/store';
 
 export interface GraphPanelProps {
     isOpen: boolean;
@@ -7,6 +10,9 @@ export interface GraphPanelProps {
 }
 
 export function GraphPanel({ isOpen, onClose }: GraphPanelProps) {
+    const { state } = useWizard();
+    const { onlineUsers, isConnected } = useCollaboration(state.team?.teamId || null);
+
     return (
         <div
             className={`fixed right-0 top-0 h-full w-[600px] bg-white dark:bg-slate-900 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${isOpen ? 'translate-x-0' : 'translate-x-full'
@@ -15,17 +21,20 @@ export function GraphPanel({ isOpen, onClose }: GraphPanelProps) {
             <div className="h-full flex flex-col">
                 {/* Header */}
                 <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-gradient-to-r from-purple-50 to-blue-50 dark:from-slate-800 dark:to-slate-900">
-                    <div>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                            Organization Graph
-                        </h2>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                    <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                                Organization Graph
+                            </h2>
+                            <PresenceIndicator onlineUsers={onlineUsers} isConnected={isConnected} />
+                        </div>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             Real-time visualization of your team's alignment
                         </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                        className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors ml-4"
                         aria-label="Close graph panel"
                     >
                         <X className="h-5 w-5 text-slate-600 dark:text-slate-400" />
