@@ -31,6 +31,7 @@ type Action =
     | { type: 'SET_PEOPLE'; payload: Person[] }
     | { type: 'SET_RELATIONSHIPS'; payload: SemanticRelationship[] }
     | { type: 'SET_GRAPH_LAYOUT'; payload: any }
+    | { type: 'UPDATE_NODE_METADATA'; payload: { nodeId: string; entityType: string; label: string; description?: string; tags?: string[] } }
     | { type: 'LOAD_STATE'; payload: WizardState }
     | { type: 'NEXT_STEP' }
     | { type: 'PREV_STEP' }
@@ -77,6 +78,81 @@ export function wizardReducer(state: WizardState, action: Action): WizardState {
             return { ...state, relationships: action.payload, auditLog: [...state.auditLog, logEntry] };
         case 'SET_GRAPH_LAYOUT':
             return { ...state, graphLayout: action.payload };
+        case 'UPDATE_NODE_METADATA': {
+            const { nodeId, entityType, label, description, tags } = action.payload;
+            logEntry = { user: 'current-user', action: 'edited', ts: now, details: `Updated ${entityType}: ${label}` };
+
+            // Update the appropriate entity based on type
+            switch (entityType.toLowerCase()) {
+                case 'purpose':
+                    if (state.team) {
+                        return {
+                            ...state,
+                            team: {
+                                ...state.team,
+                                teamPurpose: label,
+                                purposeMetadata: { ...state.team.purposeMetadata, description, tags }
+                            },
+                            auditLog: [...state.auditLog, logEntry]
+                        };
+                    }
+                    break;
+                case 'vision':
+                    if (state.vision) {
+                        return {
+                            ...state,
+                            vision: { ...state.vision, text: label, description, tags },
+                            auditLog: [...state.auditLog, logEntry]
+                        };
+                    }
+                    break;
+                case 'mission':
+                    if (state.mission) {
+                        return {
+                            ...state,
+                            mission: { ...state.mission, text: label, description, tags },
+                            auditLog: [...state.auditLog, logEntry]
+                        };
+                    }
+                    break;
+                case 'strategy':
+                    if (state.strategy) {
+                        return {
+                            ...state,
+                            strategy: { ...state.strategy, text: label, description, tags },
+                            auditLog: [...state.auditLog, logEntry]
+                        };
+                    }
+                    break;
+                case 'value':
+                    return {
+                        ...state,
+                        values: state.values.map(v =>
+                            v.id === nodeId ? { ...v, label, description, tags } : v
+                        ),
+                        auditLog: [...state.auditLog, logEntry]
+                    };
+                case 'principle':
+                    return {
+                        ...state,
+                        principles: state.principles.map(p =>
+                            p.id === nodeId ? { ...p, label, description, tags } : p
+                        ),
+                        auditLog: [...state.auditLog, logEntry]
+                    };
+                case 'behavior':
+                    return {
+                        ...state,
+                        behaviors: state.behaviors.map(b =>
+                            b.id === nodeId ? { ...b, label, description, tags } : b
+                        ),
+                        auditLog: [...state.auditLog, logEntry]
+                    };
+                default:
+                    return state;
+            }
+            return state;
+        }
         case 'LOAD_STATE':
             return { ...action.payload, auditLog: [...action.payload.auditLog, { user: 'system', action: 'edited', ts: now, details: 'Team loaded from storage' }] };
         case 'NEXT_STEP':

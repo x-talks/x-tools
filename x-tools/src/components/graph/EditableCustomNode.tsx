@@ -1,6 +1,7 @@
 import { memo, useState, useCallback, useRef, useEffect } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { Edit2, Check, X, Tag } from 'lucide-react';
+import { useWizard } from '../../core/store';
 
 interface EditableNodeData {
     label: string;
@@ -12,9 +13,11 @@ interface EditableNodeData {
     textColor?: string;
     logo?: string;
     isEditMode?: boolean;
+    nodeId?: string;
 }
 
-export const EditableCustomNode = memo(({ data, isConnectable }: NodeProps<EditableNodeData>) => {
+export const EditableCustomNode = memo(({ id, data, isConnectable }: NodeProps<EditableNodeData>) => {
+    const { dispatch } = useWizard();
     const [isEditing, setIsEditing] = useState(false);
     const [editedLabel, setEditedLabel] = useState(data.label);
     const [editedDescription, setEditedDescription] = useState(data.description || '');
@@ -41,16 +44,28 @@ export const EditableCustomNode = memo(({ data, isConnectable }: NodeProps<Edita
     }, [data.isEditMode]);
 
     const handleSave = useCallback(() => {
-        // Update the node data
+        // Update the node data (for immediate visual feedback)
         data.label = editedLabel;
         data.content = editedLabel;
         data.description = editedDescription;
         data.tags = editedTags;
 
+        // Dispatch to store to persist the changes
+        dispatch({
+            type: 'UPDATE_NODE_METADATA',
+            payload: {
+                nodeId: data.nodeId || id,
+                entityType: data.entityType,
+                label: editedLabel,
+                description: editedDescription,
+                tags: editedTags
+            }
+        });
+
         setIsEditing(false);
         setShowDescriptionEdit(false);
         setShowTagsEdit(false);
-    }, [editedLabel, editedDescription, editedTags, data]);
+    }, [editedLabel, editedDescription, editedTags, data, id, dispatch]);
 
     const handleCancel = useCallback(() => {
         setEditedLabel(data.label);
