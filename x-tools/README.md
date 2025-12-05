@@ -9,6 +9,10 @@
 -   **Dynamic Ontology Graph**: An interactive, force-directed graph (React Flow) that visualizes the relationships between your team's identity elements (e.g., how a Goal implements a Strategy, or how a Behavior derives from a Value).
 -   **Graph Editing**: Directly manipulate the graph structure—add connections, edit nodes, and see changes reflected in your team model.
 -   **Supabase Persistence**: Securely save and load team configurations using Supabase (or fallback to LocalStorage).
+-   **Semantic Health Check**: Real-time strategy alignment scoring using local AI embeddings (Browser-based ML) to measure coherence between Purpose, Vision, Mission, and Goals.
+-   **Autonomous Facilitator**: An AI agent ("Analyst", "Skeptic", "Fan") that proactively critiques your content and offers specific improvements.
+-   **Real-Time Multiplayer**: Collaboration support with live cursor tracking, presence indicators, and synchronized editing.
+-   **Cinematic UI**: Premium glassmorphism aesthetics, smooth view transitions, and voice dictation support.
 -   **Export & Sharing**: Export your Team Canvas as a JSON file or visualize it for presentations.
 -   **Deterministic Design**: A "Deterministic" UI mode that adheres to strict design principles for clean, predictable aesthetics.
 
