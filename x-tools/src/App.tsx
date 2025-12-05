@@ -20,6 +20,7 @@ import { TeamVisualization } from './components/TeamVisualization';
 import { ThemeProvider } from './components/ThemeProvider';
 import { ThemeToggle } from './components/ThemeToggle';
 import { AISettings } from './components/AISettings';
+import { AutoSaveIndicator } from './components/AutoSaveIndicator';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { GraphPanel } from './components/GraphPanel';
 
@@ -105,6 +106,7 @@ function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
               >
                 {isGraphPanelOpen ? 'Hide' : 'Show'} Graph
               </button>
+              <AutoSaveIndicator />
               <AISettings />
               <ThemeToggle />
             </div>
