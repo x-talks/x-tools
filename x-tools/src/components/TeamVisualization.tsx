@@ -60,7 +60,7 @@ export function TeamVisualization() {
             </div>
 
             {/* Main Visualization */}
-            <div ref={canvasRef}>
+            <div ref={canvasRef} className={viewMode === 'graph' ? "h-[75vh] w-full border rounded-lg shadow-sm overflow-hidden bg-slate-50" : ""}>
                 {viewMode === 'canvas' ? <TeamCanvas /> : <InteractiveGraph />}
             </div>
         </div>
