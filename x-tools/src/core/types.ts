@@ -7,7 +7,7 @@ export interface Team {
         description?: string;
         tags?: string[];
     };
-    goals: string[]; // Legacy string array, mapped to Goal objects in DB
+    goals: Goal[]; // Mapped to Goal objects
     logo?: string; // Base64 string
     createdAt: string; // ISO8601
     createdBy: string;
@@ -137,7 +137,7 @@ export interface WizardState {
     team: Team | null;
     mission: Mission | null;
     vision: Vision | null;
-    goals: string[]; // Keeping as string[] for frontend compatibility, synced to Goal table
+    goals: Goal[]; // Mapped to Goal objects
     values: Value[];
     behaviors: Behavior[];
     principles: Principle[];

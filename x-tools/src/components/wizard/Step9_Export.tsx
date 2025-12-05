@@ -97,7 +97,7 @@ export function Step9_Export() {
                             <div>
                                 <span className="font-semibold block text-slate-700 mb-1">7. Goals</span>
                                 <ul className="list-disc list-inside bg-white p-2 rounded border border-slate-200">
-                                    {state.goals?.map((g, i) => <li key={i}>{g}</li>)}
+                                    {state.goals?.map((g, i) => <li key={i}>{g.text}</li>)}
                                 </ul>
                             </div>
                             <div className="col-span-2">

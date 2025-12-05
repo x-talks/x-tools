@@ -59,7 +59,7 @@ export function TeamCanvas() {
                         </div>
                         <h2 className="text-xl font-bold mb-4 uppercase tracking-wide">Common Goals</h2>
                         <ul className="list-disc list-inside space-y-2">
-                            {goals.length > 0 ? goals.map((g, i) => <li key={i} className="text-sm">{g}</li>) : <li className="text-slate-400 italic">No goals defined</li>}
+                            {goals.length > 0 ? goals.map((g, i) => <li key={i} className="text-sm">{g.text}</li>) : <li className="text-slate-400 italic">No goals defined</li>}
                         </ul>
                     </section>
                 </div>

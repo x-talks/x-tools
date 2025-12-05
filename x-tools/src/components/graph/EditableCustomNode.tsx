@@ -4,6 +4,7 @@ import { Edit2, Check, X, Tag } from 'lucide-react';
 import { useWizard } from '../../core/store';
 import { ColorPicker } from '../ColorPicker';
 import { EmojiPicker } from '../EmojiPicker';
+import { MarkdownRenderer } from '../MarkdownRenderer';
 
 interface EditableNodeData {
     label: string;
@@ -211,17 +212,22 @@ export const EditableCustomNode = memo(({ id, data, isConnectable }: NodeProps<E
                             </button>
 
                             {showDescriptionEdit && (
-                                <textarea
-                                    ref={textareaRef}
-                                    value={editedDescription}
-                                    onChange={(e) => setEditedDescription(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Escape') handleCancel();
-                                    }}
-                                    rows={3}
-                                    className="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-400"
-                                    placeholder="Add description..."
-                                />
+                                <div className="space-y-1">
+                                    <textarea
+                                        ref={textareaRef}
+                                        value={editedDescription}
+                                        onChange={(e) => setEditedDescription(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Escape') handleCancel();
+                                        }}
+                                        rows={3}
+                                        className="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-400"
+                                        placeholder="Add description... (Markdown supported: **bold**, *italic*, `code`, [link](url))"
+                                    />
+                                    <div className="text-[9px] text-slate-400 dark:text-slate-500">
+                                        Markdown: **bold** *italic* `code` [link](url) # heading
+                                    </div>
+                                </div>
                             )}
 
                             {/* Tags Toggle */}
@@ -305,8 +311,11 @@ export const EditableCustomNode = memo(({ id, data, isConnectable }: NodeProps<E
                     <div className="font-bold mb-1 text-base">{data.entityType}</div>
                     <div className="mb-2 text-sm leading-relaxed">{data.content || data.label}</div>
                     {data.description && (
-                        <div className="text-slate-300 italic border-t border-slate-700 pt-2 mt-2">
-                            {data.description}
+                        <div className="border-t border-slate-700 pt-2 mt-2">
+                            <MarkdownRenderer
+                                content={data.description}
+                                className="text-slate-300 text-xs"
+                            />
                         </div>
                     )}
                     {data.tags && data.tags.length > 0 && (

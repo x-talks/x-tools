@@ -172,14 +172,14 @@ export function transformToVisualization(teams: WizardState[]): CombinedVisualiz
 
         // 7. Goals Nodes & Edges (Behavior -> Goal)
         if (teamState.goals && teamState.goals.length > 0) {
-            teamState.goals.forEach((goal, idx) => {
-                const goalNodeId = `goal-${teamId}-${idx}`;
+            teamState.goals.forEach((goal) => {
+                const goalNodeId = `goal-${teamId}-${goal.id}`;
                 nodes.push({
                     id: goalNodeId,
-                    label: goal,
+                    label: goal.text,
                     type: 'goal',
                     teamId,
-                    data: { text: goal }
+                    data: { text: goal.text }
                 });
 
                 // Connect from Behaviors (if any exist)

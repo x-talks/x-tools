@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import React, { createContext, useContext } from 'react';
-import type { WizardState, Team, Mission, Vision, Value, Behavior, Principle, AuditLogEntry, Role, Person, Strategy, SemanticRelationship } from './types';
+import type { WizardState, Team, Mission, Vision, Value, Behavior, Principle, AuditLogEntry, Role, Person, Strategy, Goal, SemanticRelationship } from './types';
 import { useHistory } from '../hooks/useHistory';
 
 const initialState: WizardState = {
@@ -22,7 +22,7 @@ type Action =
     | { type: 'SET_TEAM'; payload: Team }
     | { type: 'SET_MISSION'; payload: Mission }
     | { type: 'SET_VISION'; payload: Vision }
-    | { type: 'SET_GOALS'; payload: string[] }
+    | { type: 'SET_GOALS'; payload: Goal[] }
     | { type: 'SET_VALUES'; payload: Value[] }
     | { type: 'SET_BEHAVIORS'; payload: Behavior[] }
     | { type: 'SET_PRINCIPLES'; payload: Principle[] }
@@ -145,6 +145,14 @@ export function wizardReducer(state: WizardState, action: Action): WizardState {
                         ...state,
                         behaviors: state.behaviors.map(b =>
                             b.id === nodeId ? { ...b, label, description, tags } : b
+                        ),
+                        auditLog: [...state.auditLog, logEntry]
+                    };
+                case 'goal':
+                    return {
+                        ...state,
+                        goals: state.goals.map(g =>
+                            g.id === nodeId ? { ...g, text: label, description, tags } : g
                         ),
                         auditLog: [...state.auditLog, logEntry]
                     };

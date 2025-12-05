@@ -382,14 +382,14 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
     });
 
     // Add execution layer (goals)
-    state.goals.forEach((goal, index) => {
-        const goalId = `goal-${index}`;
+    state.goals.forEach((goal, idx) => {
+        const goalId = goal.id || `goal-${idx}`;
         nodes.push({
             id: goalId,
             type: 'goal',
-            label: goal,
+            label: goal.text,
             layer: 'execution',
-            semanticTags: extractSemanticTags(goal),
+            semanticTags: extractSemanticTags(goal.text),
             metadata: { createdAt: new Date().toISOString(), source: 'user' }
         });
     });

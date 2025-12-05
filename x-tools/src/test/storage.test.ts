@@ -41,13 +41,13 @@ describe('Storage Functions', () => {
                     teamId: 'test-id',
                     teamName: 'Test Team',
                     teamPurpose: 'Test Purpose',
-                    goals: ['Goal 1'],
+                    goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
                     createdAt: new Date().toISOString(),
                     createdBy: 'test-user'
                 },
                 mission: { text: 'Test Mission', keywords: [] },
                 vision: { text: 'Test Vision', archetype: 'The Pioneer' },
-                goals: ['Goal 1'],
+                goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
                 values: [{ id: 'v1', label: 'Value 1', source: 'user', explanation: 'Test' }],
                 behaviors: [{ id: 'b1', label: 'Behavior 1', derivedFromValues: ['v1'], explanation: 'Test', ruleId: 'r1' }],
                 principles: [{ id: 'p1', label: 'Principle 1', derivedFromValues: ['v1'], explanation: 'Test principle' }],
@@ -117,13 +117,13 @@ describe('Storage Functions', () => {
                     teamId: 'test-id',
                     teamName: 'Test Team',
                     teamPurpose: 'Test Purpose',
-                    goals: ['Goal 1'],
+                    goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
                     createdAt: new Date().toISOString(),
                     createdBy: 'test-user'
                 },
                 mission: { text: 'Test Mission', keywords: [] },
                 vision: { text: 'Test Vision', archetype: 'The Pioneer' },
-                goals: ['Goal 1'],
+                goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
                 values: [{ id: 'v1', label: 'Value 1', source: 'user', explanation: 'Test' }],
                 behaviors: [{ id: 'b1', label: 'Behavior 1', derivedFromValues: ['v1'], explanation: 'Test', ruleId: 'r1' }],
                 principles: [{ id: 'p1', label: 'Principle 1', derivedFromValues: ['v1'], explanation: 'Test principle' }],
@@ -147,13 +147,13 @@ describe('Storage Functions', () => {
                     teamId: 'test-id',
                     teamName: 'Test Team',
                     teamPurpose: 'Test Purpose',
-                    goals: ['Goal 1'],
+                    goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
                     createdAt: new Date().toISOString(),
                     createdBy: 'test-user'
                 },
                 mission: { text: 'Test Mission', keywords: [] },
                 vision: { text: 'Test Vision', archetype: 'The Pioneer' },
-                goals: ['Goal 1'],
+                goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
                 values: [{ id: 'v1', label: 'Value 1', source: 'user', explanation: 'Test' }],
                 behaviors: [{ id: 'b1', label: 'Behavior 1', derivedFromValues: ['v1'], explanation: 'Test', ruleId: 'r1' }],
                 principles: [{ id: 'p1', label: 'Principle 1', derivedFromValues: ['v1'], explanation: 'Test principle' }],
@@ -168,7 +168,7 @@ describe('Storage Functions', () => {
 
             expect(loaded).toBeDefined();
             expect(loaded?.team?.teamName).toBe('Test Team');
-            expect(loaded?.goals).toEqual(['Goal 1']);
+            expect(loaded?.goals).toEqual([{ id: 'g1', text: 'Goal 1', description: '', tags: [] }]);
         });
 
         it('should return null for non-existent team', async () => {
@@ -184,13 +184,13 @@ describe('Storage Functions', () => {
                     teamId: 'test-id',
                     teamName: 'Test Team',
                     teamPurpose: 'Test Purpose',
-                    goals: ['Goal 1'],
+                    goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
                     createdAt: new Date().toISOString(),
                     createdBy: 'test-user'
                 },
                 mission: { text: 'Test Mission', keywords: [] },
                 vision: { text: 'Test Vision', archetype: 'The Pioneer' },
-                goals: ['Goal 1'],
+                goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
                 values: [{ id: 'v1', label: 'Value 1', source: 'user', explanation: 'Test' }],
                 behaviors: [{ id: 'b1', label: 'Behavior 1', derivedFromValues: ['v1'], explanation: 'Test', ruleId: 'r1' }],
                 principles: [{ id: 'p1', label: 'Principle 1', derivedFromValues: ['v1'], explanation: 'Test principle' }],

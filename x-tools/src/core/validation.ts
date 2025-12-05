@@ -11,7 +11,7 @@ export const TeamSchema = z.object({
     teamName: z.string().min(3, 'Team name must be at least 3 characters').max(100, 'Team name too long'),
     teamPurpose: z.string().optional(),
     logo: z.string().url().optional().or(z.string().startsWith('data:image/')).optional(),
-    goals: z.array(z.string()).optional(),
+    goals: z.array(z.lazy(() => GoalSchema)).optional(),
     createdAt: z.string().datetime(),
     createdBy: z.string().min(1, 'Created by is required'),
     purposeMetadata: z.object({
@@ -82,10 +82,9 @@ export const BehaviorSchema = z.object({
 
 // Goal validation
 export const GoalSchema = z.object({
-    id: z.string().uuid(),
-    label: z.string().min(5, 'Goal must be at least 5 characters'),
-    source: z.enum(['user', 'ai', 'system']),
-    explanation: z.string().optional(),
+    id: z.string().uuid().or(z.string()), // Allow non-UUID IDs for temporary/example goals
+    text: z.string().min(3, 'Goal must be at least 3 characters'),
+    strategyId: z.string().optional(),
     description: z.string().optional(),
     tags: z.array(z.string()).optional()
 });
