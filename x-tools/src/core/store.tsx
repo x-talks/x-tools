@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import React, { createContext, useContext } from 'react';
+import { RelationType } from './types';
 import type { WizardState, Team, Mission, Vision, Value, Behavior, Principle, AuditLogEntry, Role, Person, Strategy, Goal, SemanticRelationship } from './types';
 import { useHistory } from '../hooks/useHistory';
 
@@ -32,6 +33,8 @@ type Action =
     | { type: 'SET_RELATIONSHIPS'; payload: SemanticRelationship[] }
     | { type: 'SET_GRAPH_LAYOUT'; payload: any }
     | { type: 'UPDATE_NODE_METADATA'; payload: { nodeId: string; entityType: string; label: string; description?: string; tags?: string[]; color?: string; textColor?: string; emoji?: string } }
+    | { type: 'ADD_RELATIONSHIP'; payload: { source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null } }
+    | { type: 'REMOVE_RELATIONSHIP'; payload: { source: string; target: string } }
     | { type: 'LOAD_STATE'; payload: WizardState }
     | { type: 'NEXT_STEP' }
     | { type: 'PREV_STEP' }
@@ -160,6 +163,133 @@ export function wizardReducer(state: WizardState, action: Action): WizardState {
                     return state;
             }
             return state;
+        }
+        case 'ADD_RELATIONSHIP': {
+            const { source, target } = action.payload;
+            logEntry = { user: 'current-user', action: 'edited', ts: now, details: `Relationship added` };
+
+            // 1. Try to infer structural relationships
+            // Principle -> Value
+            const principle = state.principles.find(p => p.id === source);
+            const value = state.values.find(v => v.id === target);
+            if (principle && value) {
+                return {
+                    ...state,
+                    principles: state.principles.map(p => p.id === source ? { ...p, valueId: target } : p),
+                    auditLog: [...state.auditLog, logEntry]
+                };
+            }
+
+            // Behavior -> Principle
+            const behavior = state.behaviors.find(b => b.id === source);
+            const targetPrinciple = state.principles.find(p => p.id === target);
+            if (behavior && targetPrinciple) {
+                return {
+                    ...state,
+                    behaviors: state.behaviors.map(b => b.id === source ? { ...b, principleId: target } : b),
+                    auditLog: [...state.auditLog, logEntry]
+                };
+            }
+
+            // Strategy -> Mission
+            if (source === 'strategy' && target === 'mission') { // Direction might be inverted in graph? Usually dependency is Target? 
+                // Ontology: Mission -> Strategy (Strategy implements Mission). Edge: source=mission, target=strategy
+                // If user drags Mission -> Strategy
+                if (state.strategy) {
+                    return {
+                        ...state,
+                        strategy: { ...state.strategy, missionId: target },
+                        auditLog: [...state.auditLog, logEntry]
+                    };
+                }
+            }
+
+            // Goal -> Strategy
+            const goal = state.goals.find(g => g.id === source);
+            if (goal && target === 'strategy') {
+                return {
+                    ...state,
+                    goals: state.goals.map(g => g.id === source ? { ...g, strategyId: target } : g),
+                    auditLog: [...state.auditLog, logEntry]
+                };
+            }
+
+            // 2. Fallback: Add to explicit relationships
+            const newRel: SemanticRelationship = {
+                id: `manual-${Date.now()}`,
+                sourceId: source,
+                targetId: target,
+                sourceType: 'value', // Placeholder, ideally we'd look up types
+                targetType: 'value', // Placeholder
+                relationType: RelationType.SUPPORTS,
+                strength: 100,
+                confidence: 100,
+                auto_detected: false,
+                explanation: 'Manual connection'
+            };
+
+            return {
+                ...state,
+                relationships: [...(state.relationships || []), newRel],
+                auditLog: [...state.auditLog, logEntry]
+            };
+        }
+        case 'REMOVE_RELATIONSHIP': {
+            const { source, target } = action.payload;
+            logEntry = { user: 'current-user', action: 'edited', ts: now, details: `Relationship removed` };
+
+            // 1. Check structural links (Implicit relationships)
+            let updatedPrinciples = state.principles;
+            let updatedBehaviors = state.behaviors;
+            let updatedGoals = state.goals;
+
+            // Principle -> Value
+            // Edge in ontology: source=principle, target=value
+            const principleIndex = state.principles.findIndex(p => p.id === source && p.valueId === target);
+            if (principleIndex !== -1) {
+                updatedPrinciples = state.principles.map((p, i) => i === principleIndex ? { ...p, valueId: undefined } : p);
+            }
+            // Also check legacy derivedFromValues
+            updatedPrinciples = updatedPrinciples.map(p => {
+                if (p.id === source && p.derivedFromValues?.includes(target)) {
+                    return { ...p, derivedFromValues: p.derivedFromValues.filter(id => id !== target) };
+                }
+                return p;
+            });
+
+            // Behavior -> Principle
+            // Edge: source=behavior, target=principle
+            const behaviorIndex = state.behaviors.findIndex(b => b.id === source && b.principleId === target);
+            if (behaviorIndex !== -1) {
+                updatedBehaviors = state.behaviors.map((b, i) => i === behaviorIndex ? { ...b, principleId: undefined } : b);
+            }
+            // Behavior -> Value (legacy)
+            updatedBehaviors = updatedBehaviors.map(b => {
+                if (b.id === source && b.derivedFromValues?.includes(target)) {
+                    return { ...b, derivedFromValues: b.derivedFromValues.filter(id => id !== target) };
+                }
+                return b;
+            });
+
+            // Goal -> Strategy
+            const goalIndex = state.goals.findIndex(g => g.id === source && (target === 'strategy' || g.strategyId === target));
+            if (goalIndex !== -1) {
+                updatedGoals = state.goals.map((g, i) => i === goalIndex ? { ...g, strategyId: undefined } : g);
+            }
+
+            // 2. Remove explicit relationships
+            const updatedRelationships = (state.relationships || []).filter(r =>
+                !(r.sourceId === source && r.targetId === target)
+            );
+
+            return {
+                ...state,
+                principles: updatedPrinciples,
+                behaviors: updatedBehaviors,
+                goals: updatedGoals,
+                relationships: updatedRelationships,
+                auditLog: [...state.auditLog, logEntry]
+            };
         }
         case 'LOAD_STATE':
             return { ...action.payload, auditLog: [...action.payload.auditLog, { user: 'system', action: 'edited', ts: now, details: 'Team loaded from storage' }] };

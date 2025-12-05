@@ -40,6 +40,13 @@ export const EditableCustomNode = memo(({ id, data, isConnectable }: NodeProps<E
         }
     }, [isEditing]);
 
+    // Sync state with data props when they change externally
+    useEffect(() => {
+        setEditedLabel(data.label);
+        setEditedDescription(data.description || '');
+        setEditedTags(data.tags || []);
+    }, [data.label, data.description, data.tags]);
+
     const handleDoubleClick = useCallback(() => {
         if (data.isEditMode) {
             setIsEditing(true);

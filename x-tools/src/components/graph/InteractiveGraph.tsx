@@ -84,20 +84,38 @@ export function InteractiveGraph() {
     }, [nodes, dispatch]);
 
     const onConnect = useCallback((params: Connection) => {
-        if (isEditMode) {
+        if (isEditMode && params.source && params.target) {
             setEdges((eds) => addEdge({ ...params, animated: true }, eds));
-            // TODO: Implement persistence for custom edges
+
+            // Persist to store
+            dispatch({
+                type: 'ADD_RELATIONSHIP',
+                payload: {
+                    source: params.source,
+                    target: params.target,
+                    sourceHandle: params.sourceHandle,
+                    targetHandle: params.targetHandle
+                }
+            });
         }
-    }, [setEdges, isEditMode]);
+    }, [setEdges, isEditMode, dispatch]);
 
 
 
     const handleEdgeClick: EdgeMouseHandler = useCallback((_event, edge) => {
         if (isEditMode && window.confirm('Delete this connection?')) {
             setEdges((eds) => eds.filter((e) => e.id !== edge.id));
-            // TODO: Implement persistence for edge deletion
+
+            // Persist to store
+            dispatch({
+                type: 'REMOVE_RELATIONSHIP',
+                payload: {
+                    source: edge.source,
+                    target: edge.target
+                }
+            });
         }
-    }, [isEditMode, setEdges]);
+    }, [isEditMode, setEdges, dispatch]);
 
 
 
