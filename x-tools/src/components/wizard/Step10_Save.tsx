@@ -23,7 +23,7 @@ export function Step10_Save({ }: Step8Props) {
     const [saveError, setSaveError] = useState<string | null>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
 
-    const { isSaving, lastSaved: autoSaveTime } = useAutoSave(state, true);
+    const { isSaving, lastSaved: autoSaveTime } = useAutoSave();
 
 
 
