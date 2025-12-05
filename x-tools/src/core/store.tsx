@@ -127,7 +127,15 @@ export function wizardReducer(state: WizardState, action: Action): WizardState {
             return { ...state, auditLog: [...state.auditLog, logEntry] };
 
         case 'UPDATE_WORKSHOP':
-            return { ...state, workshop: { ...(state.workshop as WorkshopSession), ...action.payload } };
+            const baseWorkshop: WorkshopSession = state.workshop || {
+                isActive: true,
+                code: 'W-' + Math.floor(Math.random() * 10000),
+                facilitatorId: 'me',
+                participants: [],
+                stage: 'brainstorming',
+                timer: { secondsRemaining: 300, status: 'paused' }
+            };
+            return { ...state, workshop: { ...baseWorkshop, ...action.payload } };
 
         case 'SET_INSIGHTS':
             return { ...state, insights: action.payload };

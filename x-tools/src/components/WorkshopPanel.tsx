@@ -9,7 +9,8 @@ export function WorkshopPanel({ onClose }: { onClose: () => void }) {
 
     // In a real app, this would be synced via websocket
     // Here we simulate the workshop state locally
-    const session = state.workshop || {
+    // Ensure we have a valid session object with array for participants to allow map() to work
+    const defaultSession = {
         isActive: false,
         code: 'W-' + Math.floor(Math.random() * 10000),
         facilitatorId: 'me',
@@ -18,9 +19,11 @@ export function WorkshopPanel({ onClose }: { onClose: () => void }) {
             { id: '2', name: 'Bob', active: true },
             { id: '3', name: 'Charlie', active: false },
         ],
-        stage: 'brainstorming',
-        timer: { secondsRemaining: 300, status: 'paused' }
+        stage: 'brainstorming' as const,
+        timer: { secondsRemaining: 300, status: 'paused' as const }
     };
+
+    const session = (state.workshop && state.workshop.participants) ? state.workshop : defaultSession;
 
     useEffect(() => {
         let interval: any;
