@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { InteractiveGraph } from './graph/InteractiveGraph';
 import { PresenceIndicator } from './PresenceIndicator';
+import { UndoRedoControls } from './UndoRedoControls';
 import { useCollaboration } from '../hooks/useCollaboration';
 import { useWizard } from '../core/store';
 
@@ -20,25 +21,26 @@ export function GraphPanel({ isOpen, onClose }: GraphPanelProps) {
         >
             <div className="h-full flex flex-col">
                 {/* Header */}
-                <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-gradient-to-r from-purple-50 to-blue-50 dark:from-slate-800 dark:to-slate-900">
-                    <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                                Organization Graph
-                            </h2>
+                <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-slate-800 dark:to-slate-900">
+                    <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                            Organization Graph
+                        </h2>
+                        <div className="flex items-center gap-2">
+                            <UndoRedoControls />
                             <PresenceIndicator onlineUsers={onlineUsers} isConnected={isConnected} />
+                            <button
+                                onClick={onClose}
+                                className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                                aria-label="Close graph panel"
+                            >
+                                <X className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                            </button>
                         </div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                            Real-time visualization of your team's alignment
-                        </p>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors ml-4"
-                        aria-label="Close graph panel"
-                    >
-                        <X className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                    </button>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                        Real-time visualization of your team's alignment
+                    </p>
                 </div>
 
                 {/* Graph Container */}
