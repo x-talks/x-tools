@@ -109,7 +109,7 @@ export function Step7_Goals() {
             text: g,
             description: '',
             tags: [],
-            type: 'objective',
+            type: 'objective' as const,
             progress: 0
         })));
     };
@@ -148,7 +148,7 @@ export function Step7_Goals() {
                 text: g,
                 description: '',
                 tags: [],
-                type: 'objective',
+                type: 'objective' as const,
                 progress: 0
             }))}
             onAdd={handleAdd}
@@ -158,8 +158,8 @@ export function Step7_Goals() {
             onMagicFill={handleMagicFill}
             renderItem={(g) => (
                 <div className={`flex flex-col p-4 border rounded-lg transition-all ${g.type === 'objective'
-                        ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800'
-                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 ml-6'
+                    ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800'
+                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 ml-6'
                     }`}>
                     <div className="flex items-start gap-3">
                         <div className={`mt-1 bg-white dark:bg-slate-900 p-1.5 rounded-full shadow-sm border ${g.type === 'objective' ? 'border-blue-200 text-blue-600' : 'border-emerald-200 text-emerald-600'
@@ -211,8 +211,8 @@ export function Step7_Goals() {
                                 <button
                                     onClick={() => handleUpdateGoal(g.id, { type: g.type === 'objective' ? 'key_result' : 'objective' })}
                                     className={`text-[10px] px-2 py-0.5 rounded-full border uppercase tracking-wider font-semibold ${g.type === 'objective'
-                                            ? 'bg-blue-100 text-blue-700 border-blue-200'
-                                            : 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                                        ? 'bg-blue-100 text-blue-700 border-blue-200'
+                                        : 'bg-emerald-100 text-emerald-700 border-emerald-200'
                                         }`}
                                 >
                                     {g.type === 'objective' ? 'Objective' : 'Key Result'}
