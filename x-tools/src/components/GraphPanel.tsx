@@ -2,8 +2,8 @@ import { X } from 'lucide-react';
 import { InteractiveGraph } from './graph/InteractiveGraph';
 import { PresenceIndicator } from './PresenceIndicator';
 import { UndoRedoControls } from './UndoRedoControls';
-import { useCollaboration } from '../hooks/useCollaboration';
-import { useWizard } from '../core/store';
+import { useCollaborationContext } from '../core/collaboration';
+
 import { AlignmentDashboard } from './graph/AlignmentDashboard';
 
 export interface GraphPanelProps {
@@ -12,8 +12,7 @@ export interface GraphPanelProps {
 }
 
 export function GraphPanel({ isOpen, onClose }: GraphPanelProps) {
-    const { state } = useWizard();
-    const { onlineUsers, isConnected } = useCollaboration(state.team?.teamId || null);
+    const { onlineUsers, isConnected } = useCollaborationContext();
 
     return (
         <div

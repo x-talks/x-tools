@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Layout } from './components/Layout';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { WizardProvider, useWizard } from './core/store';
+import { CollaborationProvider } from './core/collaboration';
 import { Stepper } from './components/ui/Stepper';
 import { Step0_CreateTeam } from './components/wizard/Step0_CreateTeam';
 import { initializeExampleTeam } from './core/storage';
@@ -23,6 +24,8 @@ import { AISettings } from './components/AISettings';
 import { AutoSaveIndicator } from './components/AutoSaveIndicator';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { GraphPanel } from './components/GraphPanel';
+import { Facilitator } from './components/Facilitator';
+import { MultiplayerLayer } from './components/MultiplayerLayer';
 
 const STEPS = [
   { title: 'Create Circle' },
@@ -118,6 +121,8 @@ function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
         </div>
       </div>
       <GraphPanel isOpen={isGraphPanelOpen} onClose={() => setIsGraphPanelOpen(false)} />
+      <Facilitator />
+      <MultiplayerLayer />
     </>
   );
 }
@@ -166,11 +171,13 @@ function AppWrapper() {
   return (
     <ThemeProvider>
       <WizardProvider>
-        <Layout>
-          <ErrorBoundary>
-            <MainContent />
-          </ErrorBoundary>
-        </Layout>
+        <CollaborationProvider>
+          <Layout>
+            <ErrorBoundary>
+              <MainContent />
+            </ErrorBoundary>
+          </Layout>
+        </CollaborationProvider>
       </WizardProvider>
     </ThemeProvider>
   );

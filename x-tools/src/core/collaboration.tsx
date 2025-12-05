@@ -1,11 +1,11 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { useWizard } from '../core/store';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import { useWizard } from './store';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-interface Presence {
+export interface Presence {
     userId: string;
     userName: string;
     cursor?: { x: number; y: number };
@@ -13,15 +13,24 @@ interface Presence {
     color: string;
 }
 
-interface BroadcastMessage {
-    type: 'node_edit' | 'cursor_move' | 'edge_create' | 'edge_delete';
-    payload: any;
+interface CollaborationContextType {
+    presences: Record<string, Presence>;
+    isConnected: boolean;
     userId: string;
     userName: string;
+    userColor: string;
+    broadcastNodeEdit: (nodeData: any) => void;
+    broadcastCursor: (x: number, y: number) => void;
+    setEditingNode: (nodeId: string | null) => void;
+    onlineUsers: Presence[];
 }
 
-export function useCollaboration(teamId: string | null) {
-    const { dispatch } = useWizard();
+const CollaborationContext = createContext<CollaborationContextType | null>(null);
+
+export function CollaborationProvider({ children }: { children: React.ReactNode }) {
+    const { state, dispatch } = useWizard();
+    const teamId = state.team?.teamId || null;
+
     const [presences, setPresences] = useState<Record<string, Presence>>({});
     const [isConnected, setIsConnected] = useState(false);
     const [userId] = useState(() => crypto.randomUUID());
@@ -30,6 +39,8 @@ export function useCollaboration(teamId: string | null) {
         const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
         return colors[Math.floor(Math.random() * colors.length)];
     });
+
+    const channelRef = useRef<any>(null);
 
     useEffect(() => {
         if (!supabaseUrl || !supabaseKey || !teamId) {
@@ -44,14 +55,13 @@ export function useCollaboration(teamId: string | null) {
                 },
                 broadcast: {
                     self: false,
-                    ack: false, // Fire and forget for performance since we don't need strict ordering for cursors
+                    ack: false,
                 },
             },
         });
 
         channelRef.current = channel;
 
-        // Track presence (who's online)
         channel
             .on('presence', { event: 'sync' }, () => {
                 const state = channel.presenceState();
@@ -69,16 +79,8 @@ export function useCollaboration(teamId: string | null) {
 
                 setPresences(presenceMap);
             })
-            .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-                console.log('User joined:', key, newPresences);
-            })
-            .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-                console.log('User left:', key, leftPresences);
-            })
             // Listen for broadcasts (real-time edits)
-            .on('broadcast', { event: 'node_edit' }, ({ payload }: { payload: BroadcastMessage }) => {
-                console.log('Received node edit:', payload);
-
+            .on('broadcast', { event: 'node_edit' }, ({ payload }: { payload: any }) => {
                 // Apply remote edit to local state
                 if (payload.type === 'node_edit') {
                     dispatch({
@@ -87,8 +89,7 @@ export function useCollaboration(teamId: string | null) {
                     });
                 }
             })
-            .on('broadcast', { event: 'cursor_move' }, ({ payload }: { payload: BroadcastMessage }) => {
-                // Update cursor position for remote user
+            .on('broadcast', { event: 'cursor_move' }, ({ payload }: { payload: any }) => {
                 setPresences(prev => ({
                     ...prev,
                     [payload.userId]: {
@@ -100,8 +101,6 @@ export function useCollaboration(teamId: string | null) {
             .subscribe(async (status) => {
                 if (status === 'SUBSCRIBED') {
                     setIsConnected(true);
-
-                    // Track own presence
                     await channel.track({
                         userId,
                         userName,
@@ -114,29 +113,19 @@ export function useCollaboration(teamId: string | null) {
         return () => {
             channel.unsubscribe();
             setIsConnected(false);
+            channelRef.current = null;
         };
     }, [teamId, userId, userName, userColor, dispatch]);
 
-    const channelRef = useRef<any>(null);
-
-    // Broadcast node edit to other users
     const broadcastNodeEdit = useCallback(async (nodeData: any) => {
         if (!teamId || !channelRef.current) return;
-
-        await channelRef.current.send({
+        channelRef.current.send({
             type: 'broadcast',
             event: 'node_edit',
-            payload: {
-                type: 'node_edit',
-                payload: nodeData,
-                userId,
-                userName
-            }
+            payload: { type: 'node_edit', payload: nodeData, userId, userName }
         });
     }, [teamId, userId, userName]);
 
-    // Broadcast cursor movement
-    // Throttle cursor broadcast to 50ms
     const throttleRef = useRef(0);
     const broadcastCursor = useCallback((x: number, y: number) => {
         const now = Date.now();
@@ -144,23 +133,15 @@ export function useCollaboration(teamId: string | null) {
         throttleRef.current = now;
 
         if (!teamId || !channelRef.current) return;
-
         channelRef.current.send({
             type: 'broadcast',
             event: 'cursor_move',
-            payload: {
-                type: 'cursor_move',
-                payload: { x, y },
-                userId,
-                userName
-            }
+            payload: { type: 'cursor_move', payload: { x, y }, userId, userName }
         });
     }, [teamId, userId, userName]);
 
-    // Update editing status
     const setEditingNode = useCallback(async (nodeId: string | null) => {
         if (!teamId || !channelRef.current) return;
-
         await channelRef.current.track({
             userId,
             userName,
@@ -170,7 +151,7 @@ export function useCollaboration(teamId: string | null) {
         });
     }, [teamId, userId, userName, userColor]);
 
-    return {
+    const value = {
         presences,
         isConnected,
         userId,
@@ -181,4 +162,29 @@ export function useCollaboration(teamId: string | null) {
         setEditingNode,
         onlineUsers: Object.values(presences).filter(p => p.userId !== userId)
     };
+
+    return (
+        <CollaborationContext.Provider value={value}>
+            {children}
+        </CollaborationContext.Provider>
+    );
+}
+
+export function useCollaborationContext() {
+    const context = useContext(CollaborationContext);
+    if (!context) {
+        // Return dummy context if not wrapped (for safety)
+        return {
+            presences: {},
+            isConnected: false,
+            userId: '',
+            userName: '',
+            userColor: '',
+            broadcastNodeEdit: () => { },
+            broadcastCursor: () => { },
+            setEditingNode: () => { },
+            onlineUsers: []
+        };
+    }
+    return context;
 }
