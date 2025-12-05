@@ -741,6 +741,7 @@ function ruleBased_detectRelationship(sourceText: string, targetText: string): {
 // Note: We'll lazy-load transformers.js only when needed
 let transformersLoaded = false;
 let pipeline: any = null;
+let extractionPipeline: any = null;
 
 export async function loadTransformersJS(): Promise<boolean> {
     if (transformersLoaded) return true;
@@ -749,11 +750,62 @@ export async function loadTransformersJS(): Promise<boolean> {
         // Dynamically import transformers.js
         const { pipeline: pipelineImport } = await import('@xenova/transformers');
         pipeline = pipelineImport;
+
+        // Initialize classification pipeline? No, let's keep it lazy in classifyTextLocal
+
         transformersLoaded = true;
         return true;
     } catch (error) {
         console.error('Failed to load Transformers.js:', error);
         return false;
+    }
+}
+
+async function getExtractionPipeline() {
+    if (extractionPipeline) return extractionPipeline;
+    if (!transformersLoaded) await loadTransformersJS();
+
+    // Load feature extraction model (small, fast model)
+    extractionPipeline = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    return extractionPipeline;
+}
+
+/**
+ * Calculates the cosine similarity between two vectors
+ */
+function cosineSimilarity(vecA: number[], vecB: number[]): number {
+    const dotProduct = vecA.reduce((sum, a, i) => sum + a * vecB[i], 0);
+    const magnitudeA = Math.sqrt(vecA.reduce((sum, a) => sum + a * a, 0));
+    const magnitudeB = Math.sqrt(vecB.reduce((sum, b) => sum + b * b, 0));
+    return magnitudeA && magnitudeB ? dotProduct / (magnitudeA * magnitudeB) : 0;
+}
+
+/**
+ * Calculates the semantic alignment score (0-100) between two texts using local embeddings.
+ * This runs entirely in the browser using WebAssembly.
+ */
+export async function calculateSemanticAlignment(text1: string, text2: string): Promise<number> {
+    try {
+        const extractor = await getExtractionPipeline();
+
+        // Generate embeddings
+        // pooling='mean' gives us a single vector for the sentence
+        const output1 = await extractor(text1, { pooling: 'mean', normalize: true });
+        const output2 = await extractor(text2, { pooling: 'mean', normalize: true });
+
+        const vec1 = Array.from(output1.data) as number[];
+        const vec2 = Array.from(output2.data) as number[];
+
+        const similarity = cosineSimilarity(vec1, vec2);
+
+        // Map -1 to 1 cosine similarity to 0-100 score
+        // Only consider positive correlation for now, clamp negative to 0
+        return Math.max(0, Math.round(similarity * 100));
+    } catch (error) {
+        console.error('Semantic alignment calculation failed:', error);
+        // Fallback: simple keyword overlap
+        const overlap = ruleBased_detectRelationship(text1, text2);
+        return overlap.hasRelationship ? (overlap.strength || 50) : 0;
     }
 }
 
@@ -923,6 +975,9 @@ export const AI = {
 
     // Loading
     loadTransformersJS,
+
+    // Semantic Alignment
+    calculateSemanticAlignment,
 };
 
 export default AI;

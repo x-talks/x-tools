@@ -728,3 +728,89 @@ export function calculateTeamHealth(state: WizardState, graph: OntologyGraph): T
         insights
     };
 }
+
+/**
+ * Semantic Alignment Analysis
+ * Uses AI embeddings to measure the mathematical coherence of the team strategy
+ */
+export interface SemanticAlignmentMetrics {
+    purposeVisionAlignment: number; // 0-100
+    visionMissionAlignment: number;
+    missionStrategyAlignment: number;
+    strategyGoalsAlignment: number;
+    overallCoherence: number;
+}
+
+export async function calculateSemanticHealth(state: WizardState): Promise<SemanticAlignmentMetrics> {
+    const { default: AI } = await import('./ai');
+
+    // Default to 0 if text is missing
+    const scores = {
+        purposeVision: 0,
+        visionMission: 0,
+        missionStrategy: 0,
+        strategyGoals: 0
+    };
+
+    // 1. Purpose <-> Vision
+    if (state.team?.teamPurpose && state.vision?.text) {
+        scores.purposeVision = await AI.calculateSemanticAlignment(
+            state.team.teamPurpose,
+            state.vision.text
+        );
+    }
+
+    // 2. Vision <-> Mission
+    if (state.vision?.text && state.mission?.text) {
+        scores.visionMission = await AI.calculateSemanticAlignment(
+            state.vision.text,
+            state.mission.text
+        );
+    }
+
+    // 3. Mission <-> Strategy
+    if (state.mission?.text && state.strategy?.text) {
+        scores.missionStrategy = await AI.calculateSemanticAlignment(
+            state.mission.text,
+            state.strategy.text
+        );
+    }
+
+    // 4. Strategy <-> Goals (Average of all goals)
+    if (state.strategy?.text && state.goals.length > 0) {
+        let totalGoalScore = 0;
+        let count = 0;
+
+        for (const goal of state.goals) {
+            const goalText = typeof goal === 'string' ? goal : goal.text;
+            if (goalText) {
+                const score = await AI.calculateSemanticAlignment(state.strategy.text, goalText);
+                totalGoalScore += score;
+                count++;
+            }
+        }
+
+        scores.strategyGoals = count > 0 ? Math.round(totalGoalScore / count) : 0;
+    }
+
+    // Calculate overall coherence (average of non-zero available steps)
+    // We only average the steps that exist to avoid punishing for incomplete wizards
+    const steps = [
+        state.team?.teamPurpose && state.vision?.text ? scores.purposeVision : null,
+        state.vision?.text && state.mission?.text ? scores.visionMission : null,
+        state.mission?.text && state.strategy?.text ? scores.missionStrategy : null,
+        state.strategy?.text && state.goals.length > 0 ? scores.strategyGoals : null
+    ].filter(s => s !== null) as number[];
+
+    const overallCoherence = steps.length > 0
+        ? Math.round(steps.reduce((a, b) => a + b, 0) / steps.length)
+        : 0;
+
+    return {
+        purposeVisionAlignment: scores.purposeVision,
+        visionMissionAlignment: scores.visionMission,
+        missionStrategyAlignment: scores.missionStrategy,
+        strategyGoalsAlignment: scores.strategyGoals,
+        overallCoherence
+    };
+}

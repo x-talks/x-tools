@@ -4,6 +4,7 @@ import { PresenceIndicator } from './PresenceIndicator';
 import { UndoRedoControls } from './UndoRedoControls';
 import { useCollaboration } from '../hooks/useCollaboration';
 import { useWizard } from '../core/store';
+import { AlignmentDashboard } from './graph/AlignmentDashboard';
 
 export interface GraphPanelProps {
     isOpen: boolean;
@@ -49,8 +50,9 @@ export function GraphPanel({ isOpen, onClose }: GraphPanelProps) {
                 </div>
 
                 {/* Footer with legend */}
-                <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                    <div className="text-xs text-slate-600 dark:text-slate-400">
+                <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-y-auto">
+                    <AlignmentDashboard />
+                    <div className="mt-4 text-xs text-slate-600 dark:text-slate-400">
                         <p className="font-semibold mb-2">Legend:</p>
                         <div className="grid grid-cols-2 gap-2">
                             <div className="flex items-center gap-2">

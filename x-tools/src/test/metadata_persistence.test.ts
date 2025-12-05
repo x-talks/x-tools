@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { saveTeam, getSavedTeams, loadTeam } from '../core/storage';
-import type { WizardState, SemanticRelationship } from '../core/types';
+import { saveTeam, loadTeam } from '../core/storage';
+import type { WizardState } from '../core/types';
 import { RelationType } from '../core/types';
 
 describe('Saved Teams Metadata Restoration', () => {
