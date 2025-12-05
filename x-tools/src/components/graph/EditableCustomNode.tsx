@@ -2,6 +2,7 @@ import { memo, useState, useCallback, useRef, useEffect } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { Edit2, Check, X, Tag } from 'lucide-react';
 import { useWizard } from '../../core/store';
+import { ColorPicker } from '../ColorPicker';
 
 interface EditableNodeData {
     label: string;
@@ -116,6 +117,36 @@ export const EditableCustomNode = memo(({ id, data, isConnectable }: NodeProps<E
                 >
                     <span>{data.entityType}</span>
                     <div className="flex items-center gap-1">
+                        {data.isEditMode && (
+                            <ColorPicker
+                                currentColor={data.color}
+                                onColorChange={(color) => {
+                                    // Update node data immediately
+                                    data.color = color;
+                                    // Determine text color based on brightness
+                                    const rgb = parseInt(color.slice(1), 16);
+                                    const r = (rgb >> 16) & 0xff;
+                                    const g = (rgb >> 8) & 0xff;
+                                    const b = (rgb >> 0) & 0xff;
+                                    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+                                    data.textColor = brightness > 128 ? '#000000' : '#ffffff';
+
+                                    // Persist to store
+                                    dispatch({
+                                        type: 'UPDATE_NODE_METADATA',
+                                        payload: {
+                                            nodeId: data.nodeId || id,
+                                            entityType: data.entityType,
+                                            label: data.label,
+                                            description: data.description,
+                                            tags: data.tags,
+                                            color: color, // Add color to payload
+                                            textColor: data.textColor // Add textColor to payload
+                                        }
+                                    });
+                                }}
+                            />
+                        )}
                         {data.logo && (
                             <img src={data.logo} alt="logo" className="w-4 h-4 rounded-full bg-white object-contain" />
                         )}

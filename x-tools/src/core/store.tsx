@@ -31,7 +31,7 @@ type Action =
     | { type: 'SET_PEOPLE'; payload: Person[] }
     | { type: 'SET_RELATIONSHIPS'; payload: SemanticRelationship[] }
     | { type: 'SET_GRAPH_LAYOUT'; payload: any }
-    | { type: 'UPDATE_NODE_METADATA'; payload: { nodeId: string; entityType: string; label: string; description?: string; tags?: string[] } }
+    | { type: 'UPDATE_NODE_METADATA'; payload: { nodeId: string; entityType: string; label: string; description?: string; tags?: string[]; color?: string; textColor?: string } }
     | { type: 'LOAD_STATE'; payload: WizardState }
     | { type: 'NEXT_STEP' }
     | { type: 'PREV_STEP' }
