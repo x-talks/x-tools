@@ -383,13 +383,16 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
 
     // Add execution layer (goals)
     state.goals.forEach((goal, idx) => {
-        const goalId = goal.id || `goal-${idx}`;
+        // Handle legacy string goals vs new Goal objects
+        const goalText = typeof goal === 'string' ? goal : goal.text;
+        const goalId = typeof goal === 'string' ? `goal-${idx}` : (goal.id || `goal-${idx}`);
+
         nodes.push({
             id: goalId,
             type: 'goal',
-            label: goal.text,
+            label: goalText,
             layer: 'execution',
-            semanticTags: extractSemanticTags(goal.text),
+            semanticTags: extractSemanticTags(goalText),
             metadata: { createdAt: new Date().toISOString(), source: 'user' }
         });
     });
@@ -542,8 +545,9 @@ export function buildOntologyGraph(state: WizardState): OntologyGraph {
 
     // 4. Strategy -> Goal
     if (state.strategy?.text && state.goals.length > 0) {
-        state.goals.forEach((_goal, index) => {
-            const goalId = `goal-${index}`;
+        state.goals.forEach((goal, index) => {
+            // Handle legacy string goals vs new Goal objects to get the correct ID
+            const goalId = typeof goal === 'string' ? `goal-${index}` : (goal.id || `goal-${index}`);
             relationships.push({
                 id: `rel-strategy-${goalId}`,
                 sourceId: 'strategy',
