@@ -48,7 +48,7 @@ export const SmartDashboard: React.FC = () => {
 
                     {/* Feature 12: AI Coach Insights */}
                     <div className="flex-1 mx-8">
-                        {state.insights.length > 0 ? (
+                        {(state.insights || []).length > 0 ? (
                             <div className="flex items-center space-x-2 bg-blue-50 dark:bg-blue-900/30 p-2 rounded-lg">
                                 <span className="text-xl">🤖</span>
                                 <span className="text-sm text-blue-800 dark:text-blue-200">

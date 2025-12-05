@@ -334,7 +334,19 @@ export function wizardReducer(state: WizardState, action: Action): WizardState {
             };
         }
         case 'LOAD_STATE':
-            return { ...action.payload, auditLog: [...action.payload.auditLog, { user: 'system', action: 'edited', ts: now, details: 'Team loaded from storage' }] };
+            // Merge loaded state with initial state to ensure new schema fields (insights, etc) are present
+            // even if loading an old save file that lacks them.
+            return {
+                ...initialState,
+                ...action.payload,
+                // Ensure specific arrays are initialized if missing in payload
+                insights: action.payload.insights || [],
+                relationships: action.payload.relationships || [],
+                auditLog: [
+                    ...(action.payload.auditLog || []),
+                    { user: 'system', action: 'edited', ts: now, details: 'Team loaded from storage' }
+                ]
+            };
         case 'NEXT_STEP':
             return { ...state, currentStep: state.currentStep + 1 };
         case 'PREV_STEP':

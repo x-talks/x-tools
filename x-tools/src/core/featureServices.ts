@@ -31,18 +31,47 @@ export const SmartValidator = {
         // Aggregate validation logic
         const issues: ValidationResult['issues'] = [];
         let totalScore = 0;
-        let count = 0;
+        let checks = 0;
 
-        // Simple aggregation example
-        if (state.mission) {
-            // ... validate mission logic
-            count++;
-            totalScore += 80; // Placeholder
+        // Check Team Basics
+        if (state.team?.teamName) {
+            totalScore += 100;
+        } else {
+            issues.push({ severity: 'critical', message: 'Team name is missing', field: 'team' });
         }
+        checks++;
+
+        // Check Purpose/Mission/Vision
+        const pmvCount = [state.team?.teamPurpose, state.mission?.text, state.vision?.text].filter(Boolean).length;
+        if (pmvCount === 3) totalScore += 100;
+        else if (pmvCount > 0) totalScore += 50;
+        else issues.push({ severity: 'warning', message: 'Define Purpose, Mission, and Vision for clarity', field: 'identity' });
+        checks++;
+
+        // Check Values
+        if (state.values.length >= 3) {
+            totalScore += 100;
+        } else if (state.values.length > 0) {
+            totalScore += 50;
+            issues.push({ severity: 'suggestion', message: 'Values are sparse. Aim for 3-5 core values.', field: 'values' });
+        } else {
+            issues.push({ severity: 'warning', message: 'No values defined.', field: 'values' });
+        }
+        checks++;
+
+        // Check Goals
+        if (state.goals.length > 0) {
+            totalScore += 100;
+        } else {
+            issues.push({ severity: 'critical', message: 'No goals defined. What is the team aiming for?', field: 'goals' });
+        }
+        checks++;
+
+        const finalScore = checks > 0 ? Math.round(totalScore / checks) : 0;
 
         return {
-            score: count === 0 ? 0 : totalScore / count,
-            status: 'valid',
+            score: finalScore,
+            status: finalScore > 80 ? 'excellent' : finalScore > 60 ? 'valid' : finalScore > 40 ? 'warning' : 'critical',
             issues,
             lastValidated: new Date().toISOString()
         };
