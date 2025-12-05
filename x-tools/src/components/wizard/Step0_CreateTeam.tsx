@@ -8,15 +8,13 @@ import { Wand2 } from 'lucide-react';
 import { WIZARD_CONTENT } from '../../core/rules';
 import { LogoGenerator } from '../LogoGenerator';
 import { TEAM_NAMES } from '../../core/names';
-import { TemplatePicker } from '../TemplatePicker';
-import { Template } from '../../core/templates';
+
 
 export function Step0_CreateTeam() {
     const { state, dispatch } = useWizard();
     const [teamName, setTeamName] = useState(state.team?.teamName || '');
     const [teamLogo, setTeamLogo] = useState(state.team?.logo || '');
     const [error, setError] = useState('');
-    const [showTemplates, setShowTemplates] = useState(false);
 
     const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -29,49 +27,10 @@ export function Step0_CreateTeam() {
         }
     };
 
-    // ...
-
     const handleAutoFill = () => {
         setTeamName("The " + TEAM_NAMES[Math.floor(Math.random() * TEAM_NAMES.length)]);
     };
 
-    const handleApplyTemplate = (template: Template) => {
-        // Apply template data to wizard state
-        dispatch({
-            type: 'SET_TEAM',
-            payload: {
-                teamId: state.team?.teamId || crypto.randomUUID(),
-                teamName: teamName || "New Team", // Keep existing name or placeholder
-                teamPurpose: template.data.teamPurpose,
-                goals: template.data.goals.map((g, i) => ({
-                    id: `goal-${Date.now()}-${i}`,
-                    text: g,
-                    tags: ['Strategy'],
-                    type: 'objective',
-                    progress: 0
-                })),
-                logo: teamLogo || undefined,
-                createdAt: state.team?.createdAt || new Date().toISOString(),
-                createdBy: 'current-user',
-            },
-        });
-
-        dispatch({ type: 'SET_VISION', payload: { text: template.data.vision, archetype: 'Template' } });
-        dispatch({ type: 'SET_MISSION', payload: { text: template.data.mission, keywords: [] } });
-        dispatch({ type: 'SET_STRATEGY', payload: { text: template.data.strategy } });
-
-        const templateValues = template.data.values.map((v, i) => ({
-            id: `val-${Date.now()}-${i}`,
-            label: v,
-            source: 'template' as const,
-            explanation: `Core value from ${template.name} template.`
-        }));
-        dispatch({ type: 'SET_VALUES', payload: templateValues });
-
-        // Close picker
-        setShowTemplates(false);
-        // Optional: Move to next step immediately? No, let user confirm Team Name.
-    };
 
     const handleNext = () => {
         if (!teamName.trim()) {
@@ -185,12 +144,7 @@ export function Step0_CreateTeam() {
                 <Button onClick={handleNext}>Next</Button>
             </CardFooter>
 
-            {showTemplates && (
-                <TemplatePicker
-                    onSelect={handleApplyTemplate}
-                    onCancel={() => setShowTemplates(false)}
-                />
-            )}
+
         </Card >
     );
 }
