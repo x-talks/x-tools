@@ -96,11 +96,13 @@ export function LogoGenerator({ teamName, onSelect, className, context }: LogoGe
                         </div>
                     ) : generatedSvg ? (
                         <div className="flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
-                            <div
-                                className="w-48 h-48 bg-white rounded-xl shadow-sm p-4 border border-slate-100"
-                                dangerouslySetInnerHTML={{ __html: generatedSvg }}
-                            />
-                            <div className="text-xs text-slate-400 font-mono">
+                            <div className="relative">
+                                <div
+                                    className="w-48 h-48 bg-white rounded-xl shadow-sm p-4 border border-slate-100 flex items-center justify-center"
+                                    dangerouslySetInnerHTML={{ __html: generatedSvg }}
+                                />
+                            </div>
+                            <div className="text-xs text-slate-500 font-medium px-3 py-1 bg-slate-100 rounded-full">
                                 Style: {selectedStyle}
                             </div>
                         </div>
