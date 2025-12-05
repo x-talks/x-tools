@@ -6,11 +6,11 @@ export const EXAMPLE_TEAM: WizardState = {
         teamName: 'Product Innovation Squad',
         teamPurpose: 'To create breakthrough products that delight customers and drive sustainable business growth through rapid experimentation and user-centered design.',
         goals: [
-            { id: 'g1', text: 'Launch 3 validated new product features this quarter', description: '', tags: [] },
-            { id: 'g2', text: 'Achieve 90%+ customer satisfaction score', description: '', tags: [] },
-            { id: 'g3', text: 'Reduce feature time-to-market by 30%', description: '', tags: [] },
-            { id: 'g4', text: 'Run 50+ user research sessions', description: '', tags: [] },
-            { id: 'g5', text: 'Maintain team NPS above 8/10', description: '', tags: [] }
+            { id: 'g1', text: 'Launch 3 validated new product features this quarter', type: 'objective', progress: 0, description: '', tags: [] },
+            { id: 'g2', text: 'Achieve 90%+ customer satisfaction score', type: 'key_result', progress: 0, description: '', tags: [] },
+            { id: 'g3', text: 'Reduce feature time-to-market by 30%', type: 'key_result', progress: 0, description: '', tags: [] },
+            { id: 'g4', text: 'Run 50+ user research sessions', type: 'key_result', progress: 0, description: '', tags: [] },
+            { id: 'g5', text: 'Maintain team NPS above 8/10', type: 'key_result', progress: 0, description: '', tags: [] }
         ],
         createdAt: new Date().toISOString(),
         createdBy: 'System',
@@ -116,11 +116,11 @@ export const EXAMPLE_TEAM: WizardState = {
         },
     ],
     goals: [
-        { id: 'g1', text: 'Launch 3 validated new product features this quarter', description: '', tags: [] },
-        { id: 'g2', text: 'Achieve 90%+ customer satisfaction score', description: '', tags: [] },
-        { id: 'g3', text: 'Reduce feature time-to-market by 30%', description: '', tags: [] },
-        { id: 'g4', text: 'Run 50+ user research sessions', description: '', tags: [] },
-        { id: 'g5', text: 'Maintain team NPS above 8/10', description: '', tags: [] }
+        { id: 'g1', text: 'Launch 3 validated new product features this quarter', type: 'objective', progress: 0, description: '', tags: [] },
+        { id: 'g2', text: 'Achieve 90%+ customer satisfaction score', type: 'key_result', progress: 0, description: '', tags: [] },
+        { id: 'g3', text: 'Reduce feature time-to-market by 30%', type: 'key_result', progress: 0, description: '', tags: [] },
+        { id: 'g4', text: 'Run 50+ user research sessions', type: 'key_result', progress: 0, description: '', tags: [] },
+        { id: 'g5', text: 'Maintain team NPS above 8/10', type: 'key_result', progress: 0, description: '', tags: [] }
     ],
     roles: [
         'Product Manager',
@@ -130,6 +130,8 @@ export const EXAMPLE_TEAM: WizardState = {
         'UX Researcher'
     ],
     people: [],
+    relationships: [], // Added required field
+    insights: [], // Added required field
     auditLog: [
         {
             ts: new Date().toISOString(),
@@ -138,7 +140,8 @@ export const EXAMPLE_TEAM: WizardState = {
             details: 'Example team created'
         }
     ],
-    currentStep: 0
+    currentStep: 0,
+    sentimentScore: 0
 };
 
 export const EXAMPLE_TEAM_2: WizardState = {
@@ -147,11 +150,11 @@ export const EXAMPLE_TEAM_2: WizardState = {
         teamName: 'Platform Engineering Crew',
         teamPurpose: 'To enable product teams to ship software faster and more safely by providing a robust, self-service internal developer platform.',
         goals: [
-            { id: 'g2-1', text: 'Reduce deployment lead time to < 15 minutes', description: '', tags: [] },
-            { id: 'g2-2', text: 'Achieve 99.99% platform uptime', description: '', tags: [] },
-            { id: 'g2-3', text: 'Migrate 100% of services to Kubernetes', description: '', tags: [] },
-            { id: 'g2-4', text: 'Automate security scanning in CI/CD', description: '', tags: [] },
-            { id: 'g2-5', text: 'Reduce cloud costs by 20%', description: '', tags: [] }
+            { id: 'g2-1', text: 'Reduce deployment lead time to < 15 minutes', type: 'key_result', progress: 0, description: '', tags: [] },
+            { id: 'g2-2', text: 'Achieve 99.99% platform uptime', type: 'key_result', progress: 0, description: '', tags: [] },
+            { id: 'g2-3', text: 'Migrate 100% of services to Kubernetes', type: 'objective', progress: 0, description: '', tags: [] },
+            { id: 'g2-4', text: 'Automate security scanning in CI/CD', type: 'key_result', progress: 0, description: '', tags: [] },
+            { id: 'g2-5', text: 'Reduce cloud costs by 20%', type: 'key_result', progress: 0, description: '', tags: [] }
         ],
         createdAt: new Date().toISOString(),
         createdBy: 'System',
@@ -231,11 +234,11 @@ export const EXAMPLE_TEAM_2: WizardState = {
         },
     ],
     goals: [
-        { id: 'g2-1', text: 'Reduce deployment lead time to < 15 minutes', description: '', tags: [] },
-        { id: 'g2-2', text: 'Achieve 99.99% platform uptime', description: '', tags: [] },
-        { id: 'g2-3', text: 'Migrate 100% of services to Kubernetes', description: '', tags: [] },
-        { id: 'g2-4', text: 'Automate security scanning in CI/CD', description: '', tags: [] },
-        { id: 'g2-5', text: 'Reduce cloud costs by 20%', description: '', tags: [] }
+        { id: 'g2-1', text: 'Reduce deployment lead time to < 15 minutes', type: 'key_result', progress: 0, description: '', tags: [] },
+        { id: 'g2-2', text: 'Achieve 99.99% platform uptime', type: 'key_result', progress: 0, description: '', tags: [] },
+        { id: 'g2-3', text: 'Migrate 100% of services to Kubernetes', type: 'objective', progress: 0, description: '', tags: [] },
+        { id: 'g2-4', text: 'Automate security scanning in CI/CD', type: 'key_result', progress: 0, description: '', tags: [] },
+        { id: 'g2-5', text: 'Reduce cloud costs by 20%', type: 'key_result', progress: 0, description: '', tags: [] }
     ],
     roles: [
         'Platform Engineer',
@@ -244,6 +247,8 @@ export const EXAMPLE_TEAM_2: WizardState = {
         'Security Engineer'
     ],
     people: [],
+    relationships: [],
+    insights: [],
     auditLog: [
         {
             ts: new Date().toISOString(),
@@ -252,5 +257,6 @@ export const EXAMPLE_TEAM_2: WizardState = {
             details: 'Example team 2 created'
         }
     ],
-    currentStep: 0
+    currentStep: 0,
+    sentimentScore: 0
 };

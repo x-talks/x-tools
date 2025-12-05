@@ -24,7 +24,9 @@ describe('Saved Teams Metadata Restoration', () => {
                         text: 'Rich Goal',
                         description: 'Goal description',
                         tags: ['priority-high'],
-                        strategyId: 's1'
+                        strategyId: 's1',
+                        type: 'objective',
+                        progress: 50
                     }
                 ],
                 createdAt: new Date().toISOString(),
@@ -33,19 +35,25 @@ describe('Saved Teams Metadata Restoration', () => {
             mission: {
                 text: 'Rich Mission',
                 keywords: ['rich'],
-                description: 'Mission description',
-                tags: ['mission-tag']
+                metadata: {
+                    description: 'Mission description',
+                    tags: ['mission-tag']
+                }
             },
             vision: {
                 text: 'Rich Vision',
                 archetype: 'Visionary',
-                description: 'Vision description',
-                tags: ['vision-tag']
+                metadata: {
+                    description: 'Vision description',
+                    tags: ['vision-tag']
+                }
             },
             strategy: {
                 text: 'Rich Strategy',
-                description: 'Strategy description',
-                tags: ['strategy-tag']
+                metadata: {
+                    description: 'Strategy description',
+                    tags: ['strategy-tag']
+                }
             },
             goals: [
                 {
@@ -53,7 +61,9 @@ describe('Saved Teams Metadata Restoration', () => {
                     text: 'Rich Goal',
                     description: 'Goal description',
                     tags: ['priority-high'],
-                    strategyId: 's1'
+                    strategyId: 's1',
+                    type: 'objective',
+                    progress: 50
                 }
             ],
             values: [
@@ -62,8 +72,10 @@ describe('Saved Teams Metadata Restoration', () => {
                     label: 'Rich Value',
                     source: 'user',
                     explanation: 'Value explanation',
-                    description: 'Value description',
-                    tags: ['value-tag']
+                    metadata: {
+                        description: 'Value description',
+                        tags: ['value-tag']
+                    }
                 }
             ],
             behaviors: [
@@ -73,8 +85,10 @@ describe('Saved Teams Metadata Restoration', () => {
                     derivedFromValues: ['v1'],
                     explanation: 'Behavior explanation',
                     ruleId: 'rule1',
-                    description: 'Behavior description',
-                    tags: ['behavior-tag']
+                    metadata: {
+                        description: 'Behavior description',
+                        tags: ['behavior-tag']
+                    }
                 }
             ],
             principles: [
@@ -82,8 +96,10 @@ describe('Saved Teams Metadata Restoration', () => {
                     id: 'p1',
                     label: 'Rich Principle',
                     explanation: 'Principle explanation',
-                    description: 'Principle description',
-                    tags: ['principle-tag'],
+                    metadata: {
+                        description: 'Principle description',
+                        tags: ['principle-tag']
+                    },
                     valueId: 'v1'
                 }
             ],
@@ -109,17 +125,16 @@ describe('Saved Teams Metadata Restoration', () => {
                 positions: {
                     'v1': { x: 100, y: 200 }
                 }
-            }
+            },
+            insights: [],
+            sentimentScore: 0
         };
 
         // 1. Save the rich state
         const saveResult = await saveTeam(richState);
         expect(saveResult.success).toBe(true);
 
-        // 2. Clear local state (simulate fresh load)
-        // (In real app, we'd reload page, here we just trust loadTeam fetches from storage)
-
-        // 3. Load the team back
+        // 2. Load the team back
         const loadedState = await loadTeam(richState.team!.teamId);
         expect(loadedState).not.toBeNull();
 
@@ -131,28 +146,33 @@ describe('Saved Teams Metadata Restoration', () => {
                 tags: ['tag1', 'tag2']
             });
 
-            expect(loadedState.mission!.description).toBe('Mission description');
-            expect(loadedState.mission!.tags).toEqual(['mission-tag']);
+            // Note: I updated types to put desc/tags in `metadata`, so checking that
+            expect(loadedState.mission!.metadata?.description).toBe('Mission description');
+            expect(loadedState.mission!.metadata?.tags).toEqual(['mission-tag']);
 
-            expect(loadedState.vision!.description).toBe('Vision description');
-            expect(loadedState.vision!.tags).toEqual(['vision-tag']);
+            expect(loadedState.vision!.metadata?.description).toBe('Vision description');
+            expect(loadedState.vision!.metadata?.tags).toEqual(['vision-tag']);
 
-            expect(loadedState.strategy!.description).toBe('Strategy description');
-            expect(loadedState.strategy!.tags).toEqual(['strategy-tag']);
+            expect(loadedState.strategy!.metadata?.description).toBe('Strategy description');
+            expect(loadedState.strategy!.metadata?.tags).toEqual(['strategy-tag']);
 
+            // Goal description/tags were kept on top level in types.ts for some reason?
+            // Let's check types.ts again. 
+            // In types.ts I added metadata AND kept desc/tags optional.
+            // For goals, I updated test data to use top-level description as well.
             expect(loadedState.goals[0].description).toBe('Goal description');
             expect(loadedState.goals[0].tags).toEqual(['priority-high']);
             expect(loadedState.goals[0].strategyId).toBe('s1');
 
-            expect(loadedState.values[0].description).toBe('Value description');
-            expect(loadedState.values[0].tags).toEqual(['value-tag']);
+            expect(loadedState.values[0].metadata?.description).toBe('Value description');
+            expect(loadedState.values[0].metadata?.tags).toEqual(['value-tag']);
 
-            expect(loadedState.principles[0].description).toBe('Principle description');
-            expect(loadedState.principles[0].tags).toEqual(['principle-tag']);
+            expect(loadedState.principles[0].metadata?.description).toBe('Principle description');
+            expect(loadedState.principles[0].metadata?.tags).toEqual(['principle-tag']);
             expect(loadedState.principles[0].valueId).toBe('v1');
 
-            expect(loadedState.behaviors[0].description).toBe('Behavior description');
-            expect(loadedState.behaviors[0].tags).toEqual(['behavior-tag']);
+            expect(loadedState.behaviors[0].metadata?.description).toBe('Behavior description');
+            expect(loadedState.behaviors[0].metadata?.tags).toEqual(['behavior-tag']);
 
             // 5. Verify graph persistence
             expect(loadedState.relationships).toHaveLength(1);

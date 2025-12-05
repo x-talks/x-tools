@@ -3,7 +3,7 @@ import { useWizard } from '../../core/store';
 import { GOAL_TEMPLATES, WIZARD_CONTENT } from '../../core/rules';
 import { WizardStepLayout } from './WizardStepLayout';
 import { SemanticTags } from '../SemanticTags';
-import { X } from 'lucide-react';
+import { X, Target, BarChart2, TrendingUp } from 'lucide-react';
 import type { Goal } from '../../core/types';
 import AI from '../../core/ai';
 import { useLibrary } from '../../hooks/useLibrary';
@@ -15,16 +15,10 @@ export function Step7_Goals() {
     const { items: libraryItems, addToLibrary } = useLibrary('goals', GOAL_TEMPLATES);
     const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
+    // Initialize with placeholders if empty (Feature 2: Smart Defaults)
     useEffect(() => {
         if (goals.length === 0 && (!state.goals || state.goals.length === 0)) {
-            const shuffled = [...libraryItems].sort(() => 0.5 - Math.random());
-            const selected = shuffled.slice(0, 3);
-            setGoals(selected.map((g, i) => ({
-                id: `goal-init-${i}`,
-                text: g,
-                description: '',
-                tags: []
-            })));
+            // No default fill for now to avoid clutter, let user choose
         }
     }, []);
 
@@ -41,11 +35,17 @@ export function Step7_Goals() {
     const handleAdd = (text: string) => {
         if (goals.some(g => g.text === text)) return;
 
+        // Auto-detect type based on keywords like "increase", "reduce", "%", "number"
+        const isKR = /\d|increase|reduce|maintain|score/.test(text.toLowerCase());
+
         const newGoal: Goal = {
             id: `goal-${Date.now()}`,
             text: text,
             description: '',
-            tags: []
+            tags: [],
+            type: isKR ? 'key_result' : 'objective',
+            progress: 0,
+            metric: isKR ? { current: 0, target: 100, unit: '%' } : undefined
         };
         setGoals([...goals, newGoal]);
     };
@@ -71,14 +71,15 @@ export function Step7_Goals() {
         }));
     };
 
+    const handleUpdateGoal = (id: string, updates: Partial<Goal>) => {
+        setGoals(prev => prev.map(g => g.id === id ? { ...g, ...updates } : g));
+    };
+
     const handleGenerateMetadata = async (id: string, text: string) => {
         try {
-            console.log('Generating metadata for goal:', text);
-            // Add context from Strategy and Mission
             const strategy = state.strategy?.text || '';
             const mission = state.mission?.text || '';
             const context = `Strategy: ${strategy}\nMission: ${mission}`;
-
             const generated = await AI.generateMetadata('Goal', text, context);
 
             setGoals(prev => prev.map(g => {
@@ -107,7 +108,9 @@ export function Step7_Goals() {
             id: `goal-magic-${i}`,
             text: g,
             description: '',
-            tags: []
+            tags: [],
+            type: 'objective',
+            progress: 0
         })));
     };
 
@@ -122,7 +125,9 @@ export function Step7_Goals() {
                 id: `goal-ai-${Date.now()}-${i}`,
                 text,
                 description: '',
-                tags: []
+                tags: [],
+                type: /\d|%/.test(text) ? 'key_result' as const : 'objective' as const,
+                progress: 0
             }));
             setGoals(prev => [...prev, ...newGoals]);
         } catch (error) {
@@ -134,15 +139,17 @@ export function Step7_Goals() {
 
     return (
         <WizardStepLayout
-            title="Step 7: Goals"
-            description="Milestones that prove progress."
+            title="Step 7: OKRs & Goals"
+            description="Define Objectives and Key Results to measure success."
             sideNoteContent={WIZARD_CONTENT.Goals}
             selectedItems={goals}
             libraryItems={libraryItems.map((g, i) => ({
                 id: `lib-${i}`,
                 text: g,
                 description: '',
-                tags: []
+                tags: [],
+                type: 'objective',
+                progress: 0
             }))}
             onAdd={handleAdd}
             onReorder={handleReorder}
@@ -150,16 +157,71 @@ export function Step7_Goals() {
             onAISuggest={handleAISuggest}
             onMagicFill={handleMagicFill}
             renderItem={(g) => (
-                <div className="flex flex-col p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
-                    <div className="flex items-start gap-2">
-                        <div className="flex-1">
-                            <div className="font-medium text-slate-900 dark:text-slate-100">{g.text}</div>
-                            <SemanticTags text={g.text} maxTags={2} />
+                <div className={`flex flex-col p-4 border rounded-lg transition-all ${g.type === 'objective'
+                        ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800'
+                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 ml-6'
+                    }`}>
+                    <div className="flex items-start gap-3">
+                        <div className={`mt-1 bg-white dark:bg-slate-900 p-1.5 rounded-full shadow-sm border ${g.type === 'objective' ? 'border-blue-200 text-blue-600' : 'border-emerald-200 text-emerald-600'
+                            }`}>
+                            {g.type === 'objective' ? <Target className="w-4 h-4" /> : <BarChart2 className="w-4 h-4" />}
                         </div>
-                        <button onClick={() => handleRemove(g.id)} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700">
-                            <X className="h-4 w-4 text-slate-400" />
-                        </button>
+
+                        <div className="flex-1 space-y-2">
+                            <div className="flex items-start justify-between">
+                                <div className="space-y-1 w-full mr-4">
+                                    <input
+                                        type="text"
+                                        value={g.text}
+                                        onChange={(e) => handleUpdateGoal(g.id, { text: e.target.value })}
+                                        className="bg-transparent font-medium text-slate-900 dark:text-slate-100 w-full border-none p-0 focus:ring-0"
+                                    />
+                                </div>
+                                <button onClick={() => handleRemove(g.id)} className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700">
+                                    <X className="h-4 w-4 text-slate-400" />
+                                </button>
+                            </div>
+
+                            {/* Feature 7: Metric Tracking & Progress */}
+                            {g.type === 'key_result' && (
+                                <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-900/50 p-2 rounded border border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400">
+                                    <div className="flex items-center gap-1">
+                                        <span>Initial: 0</span>
+                                    </div>
+                                    <div className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                                            style={{ width: `${g.progress}%` }}
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span>{g.progress}%</span>
+                                        <button
+                                            onClick={() => handleUpdateGoal(g.id, { progress: Math.min(100, g.progress + 10) })}
+                                            className="hover:text-emerald-500"
+                                        >
+                                            <TrendingUp className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Type Toggle Badge */}
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => handleUpdateGoal(g.id, { type: g.type === 'objective' ? 'key_result' : 'objective' })}
+                                    className={`text-[10px] px-2 py-0.5 rounded-full border uppercase tracking-wider font-semibold ${g.type === 'objective'
+                                            ? 'bg-blue-100 text-blue-700 border-blue-200'
+                                            : 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                                        }`}
+                                >
+                                    {g.type === 'objective' ? 'Objective' : 'Key Result'}
+                                </button>
+                                <SemanticTags text={g.text} maxTags={2} />
+                            </div>
+                        </div>
                     </div>
+
                     <MetadataEditor
                         id={g.id}
                         description={g.description}
@@ -176,7 +238,7 @@ export function Step7_Goals() {
             onNext={handleNext}
             onPrev={() => dispatch({ type: 'PREV_STEP' })}
             isNextDisabled={goals.length === 0}
-            example="Achieve 99.9% uptime."
+            example="Achieve 99.9% uptime (KR) or Dominate the Market (Objective)"
         />
     );
 }

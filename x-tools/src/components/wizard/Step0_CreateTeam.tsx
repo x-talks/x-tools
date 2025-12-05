@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { TemplateSelector } from '../TemplateSelector';
 import { useWizard } from '../../core/store';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -7,12 +8,15 @@ import { Wand2 } from 'lucide-react';
 import { WIZARD_CONTENT } from '../../core/rules';
 import { LogoGenerator } from '../LogoGenerator';
 import { TEAM_NAMES } from '../../core/names';
+import { TemplatePicker } from '../TemplatePicker';
+import { Template } from '../../core/templates';
 
 export function Step0_CreateTeam() {
     const { state, dispatch } = useWizard();
     const [teamName, setTeamName] = useState(state.team?.teamName || '');
     const [teamLogo, setTeamLogo] = useState(state.team?.logo || '');
     const [error, setError] = useState('');
+    const [showTemplates, setShowTemplates] = useState(false);
 
     const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -29,6 +33,44 @@ export function Step0_CreateTeam() {
 
     const handleAutoFill = () => {
         setTeamName("The " + TEAM_NAMES[Math.floor(Math.random() * TEAM_NAMES.length)]);
+    };
+
+    const handleApplyTemplate = (template: Template) => {
+        // Apply template data to wizard state
+        dispatch({
+            type: 'SET_TEAM',
+            payload: {
+                teamId: state.team?.teamId || crypto.randomUUID(),
+                teamName: teamName || "New Team", // Keep existing name or placeholder
+                teamPurpose: template.data.teamPurpose,
+                goals: template.data.goals.map((g, i) => ({
+                    id: `goal-${Date.now()}-${i}`,
+                    text: g,
+                    tags: ['Strategy'],
+                    type: 'objective',
+                    progress: 0
+                })),
+                logo: teamLogo || undefined,
+                createdAt: state.team?.createdAt || new Date().toISOString(),
+                createdBy: 'current-user',
+            },
+        });
+
+        dispatch({ type: 'SET_VISION', payload: { text: template.data.vision, archetype: 'Template' } });
+        dispatch({ type: 'SET_MISSION', payload: { text: template.data.mission, keywords: [] } });
+        dispatch({ type: 'SET_STRATEGY', payload: { text: template.data.strategy } });
+
+        const templateValues = template.data.values.map((v, i) => ({
+            id: `val-${Date.now()}-${i}`,
+            label: v,
+            source: 'template' as const,
+            explanation: `Core value from ${template.name} template.`
+        }));
+        dispatch({ type: 'SET_VALUES', payload: templateValues });
+
+        // Close picker
+        setShowTemplates(false);
+        // Optional: Move to next step immediately? No, let user confirm Team Name.
     };
 
     const handleNext = () => {
@@ -82,9 +124,12 @@ export function Step0_CreateTeam() {
         <Card className="w-full max-w-2xl mx-auto">
             <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Create New Circle</CardTitle>
-                <Button variant="ghost" size="sm" onClick={handleAutoFill} title="Magic Fill">
-                    <Wand2 className="h-4 w-4 text-purple-500" />
-                </Button>
+                <div className="flex gap-2">
+                    <TemplateSelector />
+                    <Button variant="ghost" size="sm" onClick={handleAutoFill} title="Magic Fill">
+                        <Wand2 className="h-4 w-4 text-purple-500" />
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
@@ -139,6 +184,13 @@ export function Step0_CreateTeam() {
             <CardFooter className="justify-end">
                 <Button onClick={handleNext}>Next</Button>
             </CardFooter>
+
+            {showTemplates && (
+                <TemplatePicker
+                    onSelect={handleApplyTemplate}
+                    onCancel={() => setShowTemplates(false)}
+                />
+            )}
         </Card >
     );
 }

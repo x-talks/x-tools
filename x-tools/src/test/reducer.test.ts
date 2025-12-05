@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { WizardState } from '../core/types';
+import type { WizardState, Goal } from '../core/types';
 import { wizardReducer } from '../core/store';
 
 describe('Wizard Reducer', () => {
@@ -14,13 +14,16 @@ describe('Wizard Reducer', () => {
         roles: [],
         people: [],
         auditLog: [],
-        currentStep: 0
+        currentStep: 0,
+        relationships: [],
+        insights: [],
+        sentimentScore: 0
     };
 
     it('should handle SET_GOALS', () => {
-        const goals = [
-            { id: 'g1', text: 'Goal 1', description: '', tags: [] },
-            { id: 'g2', text: 'Goal 2', description: '', tags: [] }
+        const goals: Goal[] = [
+            { id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 },
+            { id: 'g2', text: 'Goal 2', description: '', tags: [], type: 'key_result', progress: 10 }
         ];
         const newState = wizardReducer(initialState, { type: 'SET_GOALS', payload: goals });
 
@@ -33,14 +36,14 @@ describe('Wizard Reducer', () => {
         const loadedState: WizardState = {
             ...initialState,
             team: { teamId: 'test', teamName: 'Test', teamPurpose: 'Test', goals: [], createdAt: '', createdBy: '' },
-            goals: [{ id: 'lg1', text: 'Loaded Goal', description: '', tags: [] }],
+            goals: [{ id: 'lg1', text: 'Loaded Goal', description: '', tags: [], type: 'objective', progress: 0 }],
             currentStep: 5
         };
 
         const newState = wizardReducer(initialState, { type: 'LOAD_STATE', payload: loadedState });
 
         expect(newState.team?.teamName).toBe('Test');
-        expect(newState.goals).toEqual([{ id: 'lg1', text: 'Loaded Goal', description: '', tags: [] }]);
+        expect(newState.goals).toEqual([{ id: 'lg1', text: 'Loaded Goal', description: '', tags: [], type: 'objective', progress: 0 }]);
         expect(newState.currentStep).toBe(5);
         expect(newState.auditLog[newState.auditLog.length - 1].details).toBe('Team loaded from storage');
     });
@@ -74,7 +77,7 @@ describe('Wizard Reducer', () => {
         const populatedState: WizardState = {
             ...initialState,
             team: { teamId: 'test', teamName: 'Test', teamPurpose: 'Test', goals: [], createdAt: '', createdBy: '' },
-            goals: [{ id: 'g1', text: 'Goal', description: '', tags: [] }],
+            goals: [{ id: 'g1', text: 'Goal', description: '', tags: [], type: 'objective', progress: 0 }],
             currentStep: 7
         };
 

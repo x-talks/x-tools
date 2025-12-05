@@ -8,15 +8,15 @@ describe('Critical User Flows', () => {
     });
 
     describe('Goals Persistence', () => {
-        it('should save and load goals correctly', async () => {
+        it('should save andload goals correctly', async () => {
             const state: WizardState = {
                 team: {
                     teamId: 'test-id',
                     teamName: 'Test Team',
                     teamPurpose: 'Test Purpose',
                     goals: [
-                        { id: 'g1', text: 'Goal 1', description: '', tags: [] },
-                        { id: 'g2', text: 'Goal 2', description: '', tags: [] }
+                        { id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 },
+                        { id: 'g2', text: 'Goal 2', description: '', tags: [], type: 'key_result', progress: 0 }
                     ],
                     createdAt: new Date().toISOString(),
                     createdBy: 'test-user'
@@ -24,8 +24,8 @@ describe('Critical User Flows', () => {
                 mission: { text: 'Test Mission', keywords: [] },
                 vision: { text: 'Test Vision', archetype: 'The Pioneer' },
                 goals: [
-                    { id: 'g1', text: 'Goal 1', description: '', tags: [] },
-                    { id: 'g2', text: 'Goal 2', description: '', tags: [] }
+                    { id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 },
+                    { id: 'g2', text: 'Goal 2', description: '', tags: [], type: 'key_result', progress: 0 }
                 ],
                 values: [{ id: 'v1', label: 'Value 1', source: 'user', explanation: 'Test' }],
                 behaviors: [{ id: 'b1', label: 'Behavior 1', derivedFromValues: ['v1'], explanation: 'Test', ruleId: 'r1' }],
@@ -33,7 +33,10 @@ describe('Critical User Flows', () => {
                 roles: [],
                 people: [],
                 auditLog: [],
-                currentStep: 0
+                currentStep: 0,
+                relationships: [],
+                insights: [],
+                sentimentScore: 0
             };
 
             const result = await saveTeam(state);
@@ -42,8 +45,8 @@ describe('Critical User Flows', () => {
             const teams = await getSavedTeams();
             expect(teams).toHaveLength(1);
             expect(teams[0].state.goals).toEqual([
-                { id: 'g1', text: 'Goal 1', description: '', tags: [] },
-                { id: 'g2', text: 'Goal 2', description: '', tags: [] }
+                { id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 },
+                { id: 'g2', text: 'Goal 2', description: '', tags: [], type: 'key_result', progress: 0 }
             ]);
         });
     });
@@ -61,7 +64,10 @@ describe('Critical User Flows', () => {
                 roles: [],
                 people: [],
                 auditLog: [],
-                currentStep: 0
+                currentStep: 0,
+                relationships: [],
+                insights: [],
+                sentimentScore: 0
             };
 
             const result = await saveTeam(incompleteState);
@@ -75,20 +81,23 @@ describe('Critical User Flows', () => {
                     teamId: 'test-id',
                     teamName: 'Complete Team',
                     teamPurpose: 'Test Purpose',
-                    goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
+                    goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 }],
                     createdAt: new Date().toISOString(),
                     createdBy: 'test-user'
                 },
                 mission: { text: 'Test Mission', keywords: [] },
                 vision: { text: 'Test Vision', archetype: 'The Pioneer' },
-                goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
+                goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 }],
                 values: [{ id: 'v1', label: 'Value 1', source: 'user', explanation: 'Test' }],
                 behaviors: [{ id: 'b1', label: 'Behavior 1', derivedFromValues: ['v1'], explanation: 'Test', ruleId: 'r1' }],
                 principles: [{ id: 'p1', label: 'Principle 1', derivedFromValues: ['v1'], explanation: 'Test principle' }],
                 roles: [],
                 people: [],
                 auditLog: [],
-                currentStep: 0
+                currentStep: 0,
+                relationships: [],
+                insights: [],
+                sentimentScore: 0
             };
 
             const result = await saveTeam(completeState);
@@ -104,20 +113,23 @@ describe('Critical User Flows', () => {
                     teamId: 'team-1',
                     teamName: 'Team One',
                     teamPurpose: 'Purpose 1',
-                    goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
+                    goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 }],
                     createdAt: new Date().toISOString(),
                     createdBy: 'test-user'
                 },
                 mission: { text: 'Mission 1', keywords: [] },
                 vision: { text: 'Vision 1', archetype: 'The Pioneer' },
-                goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
+                goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 }],
                 values: [{ id: 'v1', label: 'Value 1', source: 'user', explanation: 'Test' }],
                 behaviors: [{ id: 'b1', label: 'Behavior 1', derivedFromValues: ['v1'], explanation: 'Test', ruleId: 'r1' }],
                 principles: [{ id: 'p1', label: 'Principle 1', derivedFromValues: ['v1'], explanation: 'Test principle' }],
                 roles: [],
                 people: [],
                 auditLog: [],
-                currentStep: 0
+                currentStep: 0,
+                relationships: [],
+                insights: [],
+                sentimentScore: 0
             };
 
             const team2: WizardState = {
@@ -126,11 +138,11 @@ describe('Critical User Flows', () => {
                     teamId: 'team-2',
                     teamName: 'Team Two',
                     teamPurpose: 'Purpose 2',
-                    goals: [{ id: 'g2', text: 'Goal 2', description: '', tags: [] }],
+                    goals: [{ id: 'g2', text: 'Goal 2', description: '', tags: [], type: 'objective', progress: 0 }],
                     createdAt: new Date().toISOString(),
                     createdBy: 'test-user'
                 },
-                goals: [{ id: 'g2', text: 'Goal 2', description: '', tags: [] }]
+                goals: [{ id: 'g2', text: 'Goal 2', description: '', tags: [], type: 'objective', progress: 0 }]
             };
 
             const result1 = await saveTeam(team1);

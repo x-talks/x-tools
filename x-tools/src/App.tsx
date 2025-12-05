@@ -29,6 +29,7 @@ import { ShareButton } from './components/ui/ShareButton';
 import { MultiplayerLayer } from './components/MultiplayerLayer';
 import { ProgressIndicator } from './components/ProgressIndicator';
 import { KeyboardShortcutsHint } from './components/KeyboardShortcutsHint';
+import { SmartDashboard } from './components/SmartDashboard';
 
 const STEPS = [
   { title: 'Create Circle' },
@@ -130,7 +131,9 @@ function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
       <GraphPanel isOpen={isGraphPanelOpen} onClose={() => setIsGraphPanelOpen(false)} />
       <Facilitator />
       <MultiplayerLayer />
+      <MultiplayerLayer />
       <KeyboardShortcutsHint />
+      <SmartDashboard />
     </>
   );
 }

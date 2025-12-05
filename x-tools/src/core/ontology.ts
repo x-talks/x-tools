@@ -94,7 +94,7 @@ export interface OntologyNode {
     semanticTags: SemanticTag[];
     metadata: {
         createdAt: string;
-        source: 'user' | 'system' | 'ai';
+        source: 'user' | 'system' | 'ai' | 'template';
     };
 }
 
