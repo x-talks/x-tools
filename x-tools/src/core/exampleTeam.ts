@@ -2,7 +2,7 @@ import type { WizardState } from './types';
 
 export const EXAMPLE_TEAM: WizardState = {
     team: {
-        teamId: 'example-team-001',
+        teamId: '00000000-0000-4000-a000-000000000001',
         teamName: 'Product Innovation Squad',
         teamPurpose: 'To create breakthrough products that delight customers and drive sustainable business growth through rapid experimentation and user-centered design.',
         goals: [
@@ -143,7 +143,7 @@ export const EXAMPLE_TEAM: WizardState = {
 
 export const EXAMPLE_TEAM_2: WizardState = {
     team: {
-        teamId: 'example-team-002',
+        teamId: '00000000-0000-4000-a000-000000000002',
         teamName: 'Platform Engineering Crew',
         teamPurpose: 'To enable product teams to ship software faster and more safely by providing a robust, self-service internal developer platform.',
         goals: [

@@ -3,6 +3,7 @@ export interface Team {
     teamName: string;
     teamPurpose: string;
     purposeMetadata?: {
+        id?: string;
         description?: string;
         tags?: string[];
     };

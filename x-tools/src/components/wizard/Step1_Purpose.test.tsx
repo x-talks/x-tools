@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { WizardProvider } from '../../core/store';
@@ -43,7 +43,7 @@ describe('Step1_Purpose - State Persistence', () => {
     });
 
     it('should sync local state when global state changes externally', async () => {
-        const { rerender } = renderWithProvider(<Step1_Purpose />);
+        renderWithProvider(<Step1_Purpose />);
 
         const input = screen.getByPlaceholderText(/purpose/i) || screen.getByRole('textbox');
 
