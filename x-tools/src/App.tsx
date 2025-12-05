@@ -25,6 +25,7 @@ import { AutoSaveIndicator } from './components/AutoSaveIndicator';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { GraphPanel } from './components/GraphPanel';
 import { Facilitator } from './components/Facilitator';
+import { ShareButton } from './components/ui/ShareButton';
 import { MultiplayerLayer } from './components/MultiplayerLayer';
 
 const STEPS = [
@@ -111,6 +112,7 @@ function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
               </button>
               <AutoSaveIndicator />
               <AISettings />
+              <ShareButton />
               <ThemeToggle />
             </div>
           </div>
@@ -142,6 +144,29 @@ function MainContent() {
       console.error('Failed to initialize example team:', err);
     });
   }, []);
+
+  // Check URL for teamId and load if present
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const teamId = params.get('teamId');
+
+    if (teamId) {
+      console.log("Found teamId in URL, attempting to join:", teamId);
+      import('./core/storage').then(async ({ loadTeam }) => {
+        try {
+          const loadedState = await loadTeam(teamId);
+          if (loadedState) {
+            dispatch({ type: 'LOAD_STATE', payload: loadedState });
+            setView('wizard');
+            // Clean URL without refresh
+            window.history.replaceState({}, '', window.location.pathname);
+          }
+        } catch (e) {
+          console.error("Failed to load shared team:", e);
+        }
+      });
+    }
+  }, []); // Run once on mount
 
   const handleStartNew = () => {
     dispatch({ type: 'RESET' });

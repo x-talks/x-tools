@@ -33,11 +33,29 @@ export function CollaborationProvider({ children }: { children: React.ReactNode 
 
     const [presences, setPresences] = useState<Record<string, Presence>>({});
     const [isConnected, setIsConnected] = useState(false);
-    const [userId] = useState(() => crypto.randomUUID());
-    const [userName] = useState(() => `User-${Math.floor(Math.random() * 1000)}`);
+    const [userId] = useState(() => {
+        const stored = localStorage.getItem('x_user_id');
+        if (stored) return stored;
+        const newId = crypto.randomUUID();
+        localStorage.setItem('x_user_id', newId);
+        return newId;
+    });
+
+    const [userName] = useState(() => {
+        const stored = localStorage.getItem('x_user_name');
+        if (stored) return stored;
+        const newName = `User-${Math.floor(Math.random() * 1000)}`;
+        localStorage.setItem('x_user_name', newName);
+        return newName;
+    });
+
     const [userColor] = useState(() => {
+        const stored = localStorage.getItem('x_user_color');
+        if (stored) return stored;
         const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
-        return colors[Math.floor(Math.random() * colors.length)];
+        const newColor = colors[Math.floor(Math.random() * colors.length)];
+        localStorage.setItem('x_user_color', newColor);
+        return newColor;
     });
 
     const channelRef = useRef<any>(null);
