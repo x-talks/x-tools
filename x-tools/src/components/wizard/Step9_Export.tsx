@@ -2,16 +2,32 @@ import { useState } from 'react';
 import { useWizard } from '../../core/store';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { Share2, Eye } from 'lucide-react';
+import { Share2, Eye, FileText, Loader2 } from 'lucide-react';
 import { transformToVisualization } from '../../core/visualizer';
 import { VisualizationModal } from '../ui/VisualizationModal';
+import { exportToPDF } from '../../core/pdfExport';
 
 export function Step9_Export() {
     const { state, dispatch } = useWizard();
     const [showVisualization, setShowVisualization] = useState(false);
+    const [isExportingPdf, setIsExportingPdf] = useState(false);
 
     const handleNext = () => {
         dispatch({ type: 'NEXT_STEP' });
+    };
+
+
+
+    const handleExportPDF = async () => {
+        setIsExportingPdf(true);
+        try {
+            await exportToPDF(state);
+        } catch (e) {
+            console.error(e);
+            alert("Failed to generate PDF");
+        } finally {
+            setIsExportingPdf(false);
+        }
     };
 
     const handleExportViz = () => {
@@ -157,6 +173,10 @@ export function Step9_Export() {
                     <div className="flex gap-2">
                         <Button variant="secondary" onClick={handleExportViz}>
                             <Share2 className="mr-2 h-4 w-4" /> Export JSON
+                        </Button>
+                        <Button variant="secondary" onClick={handleExportPDF} disabled={isExportingPdf}>
+                            {isExportingPdf ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
+                            PDF Report (AI)
                         </Button>
                         <Button onClick={handleNext}>Next: Save</Button>
                     </div>

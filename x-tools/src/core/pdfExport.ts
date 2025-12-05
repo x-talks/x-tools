@@ -1,0 +1,166 @@
+import { WizardState } from './types';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { callGroqAPI, isGroqConfigured } from './ai';
+
+/**
+ * Generates an executive summary of the team strategy using AI.
+ */
+export async function generateExecutiveSummary(state: WizardState): Promise<string> {
+    if (!isGroqConfigured()) {
+        return "AI Summary not available (API Key missing). Please configure Groq API in settings.";
+    }
+
+    const prompt = `
+    You are an expert strategy consultant writing an executive summary for a team's strategy document.
+    
+    Summarize the following team identity into a compelling 3-paragraph executive narrative:
+    1. Who they are (Purpose & Vision)
+    2. How they operate (Values & Mission)
+    3. What they will achieve (Strategy & Goals)
+
+    Team Name: ${state.team?.teamName}
+    Purpose: ${state.team?.teamPurpose}
+    Vision: ${state.vision?.text}
+    Mission: ${state.mission?.text}
+    Strategy: ${state.strategy?.text}
+    Values: ${state.values.map(v => v.label).join(', ')}
+    Goals: ${state.goals.map(g => typeof g === 'string' ? g : g.text).join(', ')}
+
+    Output Format: return ONLY the 3-paragraph summary text. No markdown, just clean text.
+    `;
+
+    try {
+        return await callGroqAPI(prompt, "You are a senior strategy consultant.");
+    } catch (e) {
+        console.error("Failed to generate summary", e);
+        return "Failed to generate AI summary.";
+    }
+}
+
+/**
+ * Exports the Team Canvas as a professional PDF report.
+ */
+export async function exportToPDF(state: WizardState) {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+
+    // -- Cover Page --
+    doc.setFillColor(30, 41, 59); // Slate 800
+    doc.rect(0, 0, pageWidth, 40, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont("helvetica", "bold");
+    doc.text(state.team?.teamName || "Team Strategy", margin, 25);
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text("Strategic Identity Report", margin, 35);
+
+    let yPos = 60;
+
+    // -- AI Executive Summary --
+    doc.setTextColor(0, 0, 0); // Black
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("Executive Summary", margin, yPos);
+    yPos += 10;
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "italic");
+    doc.text("Generating AI insights...", margin, yPos);
+
+    try {
+        const summary = await generateExecutiveSummary(state);
+        const splitSummary = doc.splitTextToSize(summary, pageWidth - (margin * 2));
+        doc.setFont("helvetica", "normal");
+        doc.text(splitSummary, margin, yPos);
+        yPos += (splitSummary.length * 5) + 15;
+    } catch (e) {
+        doc.text("Summary unavailable.", margin, yPos);
+        yPos += 15;
+    }
+
+    // -- Core Identity Table --
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("Core Identity", margin, yPos);
+    yPos += 5;
+
+    autoTable(doc, {
+        startY: yPos,
+        head: [['Component', 'Statement']],
+        body: [
+            ['Purpose', state.team?.teamPurpose || '-'],
+            ['Vision', state.vision?.text || '-'],
+            ['Mission', state.mission?.text || '-'],
+            ['Strategy', state.strategy?.text || '-']
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [59, 130, 246] }, // Blue 500
+        columnStyles: {
+            0: { fontStyle: 'bold', cellWidth: 40 },
+        }
+    });
+
+    // @ts-ignore
+    yPos = doc.lastAutoTable.finalY + 20;
+
+    // -- New Page for Details --
+    if (yPos > 250) {
+        doc.addPage();
+        yPos = 30;
+    }
+
+    // -- Values & Behaviors --
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("Culture & Values", margin, yPos);
+    yPos += 5;
+
+    const valuesData = state.values.map(v => [v.label, v.description || '-']);
+
+    autoTable(doc, {
+        startY: yPos,
+        head: [['Value', 'Description']],
+        body: valuesData,
+        theme: 'striped',
+        headStyles: { fillColor: [168, 85, 247] }, // Purple 500
+    });
+
+    // @ts-ignore
+    yPos = doc.lastAutoTable.finalY + 20;
+
+    // -- Goals --
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("Strategic Goals", margin, yPos);
+    yPos += 5;
+
+    const goalsData = state.goals.map(g => {
+        const text = typeof g === 'string' ? g : g.text;
+        const tag = typeof g === 'string' ? '' : (g.tags?.[0] || '');
+        return [text, tag];
+    });
+
+    autoTable(doc, {
+        startY: yPos,
+        head: [['Goal', 'Tag']],
+        body: goalsData,
+        theme: 'grid',
+        headStyles: { fillColor: [16, 185, 129] }, // Emerald 500
+    });
+
+    // -- Footer --
+    const pageCount = (doc.internal as any).getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`Generated by x-tools | ${new Date().toLocaleDateString()}`, margin, doc.internal.pageSize.getHeight() - 10);
+    }
+
+    doc.save(`Strategy_Report_${state.team?.teamName || 'Team'}.pdf`);
+}
