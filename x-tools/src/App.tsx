@@ -116,8 +116,10 @@ function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
           </div>
           <Stepper steps={STEPS} currentStep={state.currentStep} onStepClick={handleStepClick} />
         </div>
-        <div className="mx-auto max-w-4xl">
-          {renderStep()}
+        <div className="mx-auto max-w-4xl" key={state.currentStep}>
+          <div className="slide-up">
+            {renderStep()}
+          </div>
         </div>
       </div>
       <GraphPanel isOpen={isGraphPanelOpen} onClose={() => setIsGraphPanelOpen(false)} />

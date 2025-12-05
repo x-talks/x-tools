@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/Card
 import { SideNote } from '../ui/SideNote';
 import { Button } from '../ui/Button';
 import { ChevronDown, ChevronUp, Sparkles, Wand2, Save } from 'lucide-react';
+import { VoiceInput } from '../VoiceInput';
 
 
 interface WizardTextLayoutProps {
@@ -76,6 +77,9 @@ export function WizardTextLayout({
                             <Button variant="ghost" size="sm" onClick={onMagicFill} title="Magic Fill">
                                 <Wand2 className="h-4 w-4 text-slate-400" />
                             </Button>
+                            <VoiceInput
+                                onTranscript={(text) => onChange((value ? value + ' ' : '') + text)}
+                            />
                         </div>
                     </div>
 
