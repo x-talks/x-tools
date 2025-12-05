@@ -20,7 +20,10 @@ describe('Storage Functions', () => {
                 roles: [],
                 people: [],
                 auditLog: [],
-                currentStep: 0
+                currentStep: 0,
+                relationships: [],
+                insights: [],
+                sentimentScore: 0
             };
 
             const result = validateTeamCompleteness(state);
@@ -41,20 +44,23 @@ describe('Storage Functions', () => {
                     teamId: 'test-id',
                     teamName: 'Test Team',
                     teamPurpose: 'Test Purpose',
-                    goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
+                    goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 }],
                     createdAt: new Date().toISOString(),
                     createdBy: 'test-user'
                 },
                 mission: { text: 'Test Mission', keywords: [] },
                 vision: { text: 'Test Vision', archetype: 'The Pioneer' },
-                goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
+                goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 }],
                 values: [{ id: 'v1', label: 'Value 1', source: 'user', explanation: 'Test' }],
                 behaviors: [{ id: 'b1', label: 'Behavior 1', derivedFromValues: ['v1'], explanation: 'Test', ruleId: 'r1' }],
                 principles: [{ id: 'p1', label: 'Principle 1', derivedFromValues: ['v1'], explanation: 'Test principle' }],
                 roles: [],
                 people: [],
                 auditLog: [],
-                currentStep: 0
+                currentStep: 0,
+                relationships: [],
+                insights: [],
+                sentimentScore: 0
             };
 
             const result = validateTeamCompleteness(state);
@@ -81,7 +87,10 @@ describe('Storage Functions', () => {
                 roles: [],
                 people: [],
                 auditLog: [],
-                currentStep: 0
+                currentStep: 0,
+                relationships: [],
+                insights: [],
+                sentimentScore: 0
             };
 
             const result = validateTeamCompleteness(state);
@@ -103,7 +112,10 @@ describe('Storage Functions', () => {
                 roles: [],
                 people: [],
                 auditLog: [],
-                currentStep: 0
+                currentStep: 0,
+                relationships: [],
+                insights: [],
+                sentimentScore: 0
             };
 
             const result = await saveTeam(state);
@@ -117,20 +129,23 @@ describe('Storage Functions', () => {
                     teamId: 'test-id',
                     teamName: 'Test Team',
                     teamPurpose: 'Test Purpose',
-                    goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
+                    goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 }],
                     createdAt: new Date().toISOString(),
                     createdBy: 'test-user'
                 },
                 mission: { text: 'Test Mission', keywords: [] },
                 vision: { text: 'Test Vision', archetype: 'The Pioneer' },
-                goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
+                goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 }],
                 values: [{ id: 'v1', label: 'Value 1', source: 'user', explanation: 'Test' }],
                 behaviors: [{ id: 'b1', label: 'Behavior 1', derivedFromValues: ['v1'], explanation: 'Test', ruleId: 'r1' }],
                 principles: [{ id: 'p1', label: 'Principle 1', derivedFromValues: ['v1'], explanation: 'Test principle' }],
                 roles: [],
                 people: [],
                 auditLog: [],
-                currentStep: 0
+                currentStep: 0,
+                relationships: [],
+                insights: [],
+                sentimentScore: 0
             };
 
             const result = await saveTeam(state);
@@ -147,20 +162,23 @@ describe('Storage Functions', () => {
                     teamId: 'test-id',
                     teamName: 'Test Team',
                     teamPurpose: 'Test Purpose',
-                    goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
+                    goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 }],
                     createdAt: new Date().toISOString(),
                     createdBy: 'test-user'
                 },
                 mission: { text: 'Test Mission', keywords: [] },
                 vision: { text: 'Test Vision', archetype: 'The Pioneer' },
-                goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
+                goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 }],
                 values: [{ id: 'v1', label: 'Value 1', source: 'user', explanation: 'Test' }],
                 behaviors: [{ id: 'b1', label: 'Behavior 1', derivedFromValues: ['v1'], explanation: 'Test', ruleId: 'r1' }],
                 principles: [{ id: 'p1', label: 'Principle 1', derivedFromValues: ['v1'], explanation: 'Test principle' }],
                 roles: [],
                 people: [],
                 auditLog: [],
-                currentStep: 0
+                currentStep: 0,
+                relationships: [],
+                insights: [],
+                sentimentScore: 0
             };
 
             await saveTeam(state);
@@ -168,7 +186,7 @@ describe('Storage Functions', () => {
 
             expect(loaded).toBeDefined();
             expect(loaded?.team?.teamName).toBe('Test Team');
-            expect(loaded?.goals).toEqual([{ id: 'g1', text: 'Goal 1', description: '', tags: [] }]);
+            expect(loaded?.goals).toEqual([{ id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 }]);
         });
 
         it('should return null for non-existent team', async () => {
@@ -184,20 +202,23 @@ describe('Storage Functions', () => {
                     teamId: 'test-id',
                     teamName: 'Test Team',
                     teamPurpose: 'Test Purpose',
-                    goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
+                    goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 }],
                     createdAt: new Date().toISOString(),
                     createdBy: 'test-user'
                 },
                 mission: { text: 'Test Mission', keywords: [] },
                 vision: { text: 'Test Vision', archetype: 'The Pioneer' },
-                goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [] }],
+                goals: [{ id: 'g1', text: 'Goal 1', description: '', tags: [], type: 'objective', progress: 0 }],
                 values: [{ id: 'v1', label: 'Value 1', source: 'user', explanation: 'Test' }],
                 behaviors: [{ id: 'b1', label: 'Behavior 1', derivedFromValues: ['v1'], explanation: 'Test', ruleId: 'r1' }],
                 principles: [{ id: 'p1', label: 'Principle 1', derivedFromValues: ['v1'], explanation: 'Test principle' }],
                 roles: [],
                 people: [],
                 auditLog: [],
-                currentStep: 0
+                currentStep: 0,
+                relationships: [],
+                insights: [],
+                sentimentScore: 0
             };
 
             await saveTeam(state);

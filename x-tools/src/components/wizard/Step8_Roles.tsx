@@ -42,7 +42,8 @@ export function Step8_Roles() {
             role: newPersonRole,
             email: newPersonEmail,
             responsibilities: newPersonResponsibilities,
-            picture: newPersonPicture
+            picture: newPersonPicture,
+            accessLevel: 'editor'
         };
         setPeople([...people, newPerson]);
         setNewPersonName('');
