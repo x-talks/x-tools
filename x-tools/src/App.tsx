@@ -27,6 +27,8 @@ import { GraphPanel } from './components/GraphPanel';
 import { Facilitator } from './components/Facilitator';
 import { ShareButton } from './components/ui/ShareButton';
 import { MultiplayerLayer } from './components/MultiplayerLayer';
+import { ProgressIndicator } from './components/ProgressIndicator';
+import { KeyboardShortcutsHint } from './components/KeyboardShortcutsHint';
 
 const STEPS = [
   { title: 'Create Circle' },
@@ -88,7 +90,8 @@ function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
 
   return (
     <>
-      <div className="space-y-8">
+      <ProgressIndicator />
+      <div className="space-y-8 pt-20">
         <div className="mx-auto max-w-4xl relative pt-16">
           <div className="absolute top-0 left-0 w-full flex justify-between items-center mb-8">
             <button
@@ -127,6 +130,7 @@ function WizardOrchestrator({ onViewHome }: { onViewHome: () => void }) {
       <GraphPanel isOpen={isGraphPanelOpen} onClose={() => setIsGraphPanelOpen(false)} />
       <Facilitator />
       <MultiplayerLayer />
+      <KeyboardShortcutsHint />
     </>
   );
 }
